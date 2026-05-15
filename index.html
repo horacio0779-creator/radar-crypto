@@ -439,6 +439,7 @@ async function verificarPrecio(){
 //  Dentro de semana: 00:00 → 9:00 (madrugada, bajo volumen)
 // ══════════════════════════════════════
 let horarioBloqueado = false;
+let estadoBTC = "ANALIZANDO";
 
 function verificarHorario(){
   // Hora Argentina (UTC-3)
@@ -1134,11 +1135,13 @@ async function verificarHistoricoBTC(){
 }
 renderStats();renderFiltros();renderJugadas();cargarConfigUI();
 verificarHorario();
-estadoBTC="ANALIZANDO";actualizarBotonesScan();
-verificarHistorico()
-  .then(()=>verificarHistoricoBTC())
-  .then(()=>analizarBTC())
-  .catch(e=>console.warn("Arranque:",e));
+// Arranque robusto — cada función independiente
+async function arrancar(){
+  try{ await verificarHistorico(); }catch(e){ console.warn("verificarHistorico:",e); }
+  try{ await verificarHistoricoBTC(); }catch(e){ console.warn("verificarHistoricoBTC:",e); }
+  try{ await analizarBTC(); }catch(e){ console.warn("analizarBTC:",e); }
+}
+arrancar();
 </script>
 </body>
 </html>
