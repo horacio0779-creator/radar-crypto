@@ -1,0 +1,1144 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Radar Crypto PRO</title>
+<style>
+*{box-sizing:border-box;}
+body{background:#081624;color:white;font-family:Arial,sans-serif;margin:0;padding:16px;}
+h1{margin-bottom:14px;font-size:22px;}
+p{margin:6px 0;}
+.tabs{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;}
+.tab{flex:1;padding:11px 6px;border:none;border-radius:12px;background:#1e293b;color:white;font-weight:bold;cursor:pointer;font-size:11px;text-align:center;line-height:1.4;}
+.tab.active-alc{background:#16a34a;}
+.tab.active-lat{background:#7c3aed;}
+.section{display:none;}
+.show{display:block;}
+.card{background:#162033;padding:16px;border-radius:18px;margin-bottom:14px;border:1px solid #334155;}
+button{width:100%;padding:13px;border:none;border-radius:12px;font-weight:bold;cursor:pointer;margin-top:8px;color:white;font-size:14px;}
+.scan{background:#16a34a;}
+.scan-lat{background:#7c3aed;}
+.save{background:#2563eb;}
+.delete{background:#dc2626;}
+input,select{width:100%;padding:13px;border:none;border-radius:12px;margin-top:8px;background:#1e293b;color:white;font-size:14px;}
+input::placeholder{color:#64748b;}
+select option{background:#1e293b;}
+.filterBox{background:#111827;padding:16px;border-radius:18px;margin-bottom:14px;}
+.miniBox{display:none;margin-top:12px;}
+.filterItem{background:#0f172a;padding:10px;border-radius:10px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;}
+.filterItem button{width:auto;padding:6px 12px;margin-top:0;font-size:12px;}
+.stats{background:#111827;padding:16px;border-radius:18px;margin-bottom:14px;}
+.statsDetail{display:none;margin-top:14px;}
+.green{color:#22c55e;font-weight:bold;}
+.red{color:#ef4444;font-weight:bold;}
+.num-pos{color:#22c55e;font-weight:bold;}
+.num-neg{color:#ef4444;font-weight:bold;}
+.num-neu{color:#94a3b8;font-weight:bold;}
+.btc-panel{border-radius:14px;padding:13px 15px;margin-bottom:14px;border-width:1px;border-style:solid;}
+.btc-verde{background:#0c1f14;border-color:#16a34a;}
+.btc-amarillo{background:#1c1700;border-color:#ca8a04;}
+.btc-naranja{background:#1c0f00;border-color:#ea580c;}
+.btc-rojo{background:#1a0505;border-color:#dc2626;}
+.btc-gris{background:#111827;border-color:#334155;}
+.btc-accion{font-size:12px;font-weight:bold;padding:5px 10px;border-radius:8px;display:inline-block;margin-top:6px;}
+.inv-top{display:flex;align-items:center;justify-content:space-between;margin:14px 0 10px;flex-wrap:wrap;gap:8px;}
+.inv-top h2{margin:0;font-size:18px;}
+.ctrl-btns{display:flex;gap:6px;flex-wrap:wrap;}
+.ctrl-btn{width:auto;margin-top:0;padding:7px 11px;background:#1e293b;border:1px solid #475569;border-radius:10px;color:#cbd5e1;font-size:12px;font-weight:600;cursor:pointer;}
+.jugada-card{background:#162033;border-radius:18px;margin-bottom:12px;border:1px solid #334155;overflow:hidden;}
+.jugada-header{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;cursor:pointer;background:#1a2a40;border-bottom:1px solid #334155;}
+.jugada-header.cerrado{border-bottom:none;border-radius:18px;}
+.jugada-hdr-left{display:flex;flex-direction:column;gap:2px;flex:1;min-width:0;}
+.jugada-titulo{font-weight:bold;font-size:15px;}
+.jugada-mini{font-size:12px;color:#94a3b8;}
+.jugada-pnl{font-size:13px;font-weight:bold;margin-top:2px;}
+.btn-toggle{background:#0f172a;border:1px solid #475569;color:#cbd5e1;border-radius:8px;padding:5px 12px;font-size:16px;cursor:pointer;width:auto;margin-top:0;flex-shrink:0;margin-left:8px;}
+.jugada-body{padding:14px;}
+.jugada-body.oculto{display:none;}
+.vela-box{display:flex;align-items:center;gap:10px;background:#0a1628;border:1px solid #1e3a5f;border-radius:12px;padding:10px 13px;margin:10px 0;}
+.vela-icon{font-size:18px;flex-shrink:0;}
+.vela-info{display:flex;flex-direction:column;gap:1px;flex:1;}
+.vela-lbl{font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:.5px;}
+.vela-val{font-size:18px;font-weight:bold;color:#facc15;font-family:monospace;}
+.vela-prog{width:100%;height:5px;background:#1e293b;border-radius:3px;overflow:hidden;margin-top:5px;}
+.vela-prog-fill{height:100%;background:linear-gradient(90deg,#facc15,#f97316);border-radius:3px;transition:width 1s linear;}
+.espera-box{background:#0c1f14;border:1px solid #14532d;border-radius:12px;padding:11px 13px;margin:10px 0;}
+.espera-val{font-size:20px;font-weight:bold;color:#86efac;font-family:monospace;}
+.espera-sub{font-size:11px;color:#64748b;}
+.espera-bar{height:5px;background:#1e293b;border-radius:3px;overflow:hidden;margin-top:7px;}
+.espera-bar-fill{height:100%;background:linear-gradient(90deg,#16a34a,#4ade80);border-radius:3px;transition:width 1s linear;}
+.crono-box{display:flex;align-items:center;gap:10px;background:#0c1a0c;border:1px solid #166534;border-radius:12px;padding:10px 13px;margin:10px 0;}
+.crono-icon{font-size:18px;flex-shrink:0;}
+.crono-info{display:flex;flex-direction:column;gap:1px;flex:1;}
+.crono-lbl{font-size:11px;color:#4ade80;text-transform:uppercase;}
+.crono-val{font-size:20px;font-weight:bold;color:#86efac;font-family:monospace;}
+.crono-sub{font-size:11px;color:#64748b;line-height:1.6;}
+.precio-live-box{background:#0a1a0a;border:1px solid #166534;border-radius:10px;padding:8px 12px;margin:8px 0;display:flex;justify-content:space-between;align-items:center;}
+.precio-live-lbl{font-size:11px;color:#64748b;text-transform:uppercase;}
+.precio-live-val{font-size:20px;font-weight:bold;color:#22c55e;font-family:monospace;}
+.op-log{background:#080e1a;border:1px solid #1e293b;border-radius:12px;padding:12px;margin:10px 0;}
+.op-log-lbl{font-size:11px;color:#64748b;text-transform:uppercase;margin-bottom:8px;}
+.op-row{display:flex;justify-content:space-between;align-items:flex-start;padding:6px 0;border-bottom:1px solid #1e293b;}
+.op-row:last-child{border-bottom:none;}
+.op-key{font-size:12px;color:#94a3b8;white-space:nowrap;padding-right:8px;}
+.op-val{font-size:12px;color:white;font-weight:bold;text-align:right;line-height:1.5;}
+.op-dur{margin-top:8px;padding:7px 10px;background:#1c1700;border:1px solid #713f12;border-radius:8px;text-align:center;font-size:13px;font-weight:bold;color:#facc15;}
+.status{margin-top:8px;padding:10px;border-radius:10px;font-weight:bold;text-align:center;}
+.st-espera{background:#1e3a5f;}
+.st-entro{background:#14532d;}
+.st-tp{background:#4c1d95;}
+.st-sl{background:#7f1d1d;}
+.st-cancel{background:#374151;}
+.scanning-box{background:#0a1628;border:1px solid #1e3a5f;border-radius:12px;padding:14px;text-align:center;margin-top:10px;font-size:13px;color:#60a5fa;display:none;}
+.prog-bg{height:6px;background:#1e293b;border-radius:3px;overflow:hidden;margin-top:10px;}
+.prog-fill{height:100%;border-radius:3px;transition:width 0.3s;}
+.verif-box{background:#0a1628;border:1px solid #1e3a5f;border-radius:12px;padding:12px;margin-bottom:14px;}
+.hist-cerrada{border-radius:14px;padding:12px 14px;margin-bottom:10px;border-width:1px;border-style:solid;}
+/* BUSCADOR HISTORIAL */
+.buscador-box{background:#111827;border-radius:14px;padding:12px;margin-bottom:12px;}
+</style>
+</head>
+<body>
+<h1>📡 Radar Crypto PRO</h1>
+
+<!-- BTC PANEL -->
+<div id="btc-panel" class="btc-panel btc-gris">
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;">
+    <div>
+      <div style="font-weight:bold;font-size:14px;" id="btc-titulo">📊 BTC 4H — Iniciando...</div>
+      <div style="font-size:12px;color:#94a3b8;margin-top:2px;" id="btc-sub">Consultando Binance</div>
+      <div style="font-size:11px;color:#64748b;margin-top:3px;" id="btc-datos">—</div>
+    </div>
+    <div style="text-align:right;">
+      <div class="btc-accion" id="btc-accion" style="background:#1e293b;color:#94a3b8;">...</div>
+      <div style="font-size:10px;color:#475569;margin-top:4px;" id="btc-ts">—</div>
+    </div>
+  </div>
+</div>
+
+<!-- AVISO HORARIO BAJO VOLUMEN -->
+<div id="aviso-horario" style="display:none;background:#1a1000;border:1px solid #ca8a04;border-radius:14px;padding:14px 16px;margin-bottom:14px;">
+  <div style="font-weight:bold;font-size:15px;color:#fef08a;" id="aviso-horario-hab">🔴 Horario de bajo volumen</div>
+  <div style="font-size:12px;color:#94a3b8;margin-top:6px;line-height:1.6;">
+    El mercado crypto tiene poco volumen institucional en este momento.<br>
+    Las señales técnicas son menos confiables y el spread es mayor.
+  </div>
+  <div style="margin-top:10px;background:#0f0a00;border:1px solid #854d0e;border-radius:10px;padding:10px;font-size:13px;color:#facc15;font-weight:bold;" id="aviso-horario-cont">
+    Calculando...
+  </div>
+  <div style="margin-top:8px;font-size:11px;color:#64748b;">
+    🟢 Mejor horario: Lunes a Jueves · 9:00 a 18:00 (hora Argentina)
+  </div>
+</div>
+
+<!-- ESTADÍSTICAS -->
+<div class="stats">
+  <div style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;" onclick="toggleStats()">
+    <h2 style="margin:0;">📊 Estadísticas</h2><span id="statsArrow">⬇️</span>
+  </div>
+  <div style="margin-top:12px;">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+      <span style="color:#94a3b8;font-size:13px;">💵 Capital disponible:</span>
+      <span id="capitalDisponible" style="font-size:18px;font-weight:bold;color:#22c55e;">1000</span>
+      <span style="color:#94a3b8;font-size:13px;">USDT</span>
+      <button onclick="editarCapital()" style="width:auto;margin-top:0;padding:5px 10px;background:#1e293b;border:1px solid #475569;border-radius:8px;color:#94a3b8;font-size:12px;cursor:pointer;">✏️</button>
+    </div>
+    <div id="editarCapitalBox" style="display:none;margin-bottom:8px;">
+      <input type="number" id="capitalInput" placeholder="Nuevo capital disponible" style="margin-top:0;">
+      <button class="save" onclick="guardarCapital()" style="margin-top:6px;">Guardar Capital</button>
+    </div>
+    <p>🏁 Resultado: <span id="resultado" class="num-neu">0</span> USDT</p>
+    <div style="margin-top:10px;background:#0f172a;border-radius:12px;padding:12px;display:flex;justify-content:space-between;align-items:center;">
+      <span style="font-size:13px;color:#94a3b8;">🎯 Win Rate</span>
+      <span id="winRate" style="font-size:22px;font-weight:bold;color:#facc15;">—</span>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:8px;text-align:center;font-size:12px;">
+      <div style="flex:1;background:#0c1f14;border:1px solid #14532d;border-radius:10px;padding:8px;">
+        <div style="color:#4ade80;font-weight:bold;font-size:16px;" id="totalWins">0</div>
+        <div style="color:#64748b;">Ganadas</div>
+      </div>
+      <div style="flex:1;background:#1f0a0a;border:1px solid #7f1d1d;border-radius:10px;padding:8px;">
+        <div style="color:#f87171;font-weight:bold;font-size:16px;" id="totalLosses">0</div>
+        <div style="color:#64748b;">Perdidas</div>
+      </div>
+      <div style="flex:1;background:#0f172a;border:1px solid #334155;border-radius:10px;padding:8px;">
+        <div style="color:#94a3b8;font-weight:bold;font-size:16px;" id="totalOps">0</div>
+        <div style="color:#64748b;">Total</div>
+      </div>
+    </div>
+  </div>
+  <div id="statsDetail" class="statsDetail">
+    <p>📌 Invertido: <span id="invertido">0</span> USDT</p>
+    <hr style="border-color:#334155;margin:10px 0;">
+    <h3 style="margin:6px 0;">📈 RFibonacci <span style="font-size:11px;color:#64748b;font-weight:normal;">4h</span></h3>
+    <p>🚀 <span id="rfGanancia" class="green">0</span> &nbsp; 🛑 <span id="rfPerdida" class="red">0</span> &nbsp; 🏁 <span id="rfTotal" class="num-neu">0</span></p>
+    <h3 style="margin:6px 0;">🧠 Connor RSI <span style="font-size:11px;color:#64748b;font-weight:normal;">4h</span></h3>
+    <p>🚀 <span id="connorGanancia" class="green">0</span> &nbsp; 🛑 <span id="connorPerdida" class="red">0</span> &nbsp; 🏁 <span id="connorTotal" class="num-neu">0</span></p>
+    <h3 style="margin:6px 0;">⚡ Momentum <span style="font-size:11px;color:#64748b;font-weight:normal;">1h</span></h3>
+    <p>🚀 <span id="momentumGanancia" class="green">0</span> &nbsp; 🛑 <span id="momentumPerdida" class="red">0</span> &nbsp; 🏁 <span id="momentumTotal" class="num-neu">0</span></p>
+    <h3 style="margin:6px 0;">↔️ Canal Keltner <span style="font-size:11px;color:#64748b;font-weight:normal;">4h</span></h3>
+    <p>🚀 <span id="keltGanancia" class="green">0</span> &nbsp; 🛑 <span id="keltPerdida" class="red">0</span> &nbsp; 🏁 <span id="keltTotal" class="num-neu">0</span></p>
+    <button class="delete" style="margin-top:12px;" onclick="resetStats()">♻️ Resetear estadísticas</button>
+  </div>
+</div>
+
+<!-- CONFIGURACIÓN -->
+<div class="filterBox">
+  <div style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;" onclick="toggleConfig()">
+    <h3 style="margin:0;">⚙️ Configuración</h3><span id="configArrow">⬆️</span>
+  </div>
+  <div id="configDetail" style="margin-top:12px;">
+    <label style="font-size:13px;color:#94a3b8;display:block;margin-bottom:4px;">💵 Mínimo por operación (USDT)</label>
+    <input type="number" id="cfgMinUsdt" placeholder="Ej: 10" min="1" step="1" style="font-size:16px;padding:14px;background:#0f172a;border:1px solid #334155;color:white;border-radius:12px;">
+    <label style="font-size:13px;color:#94a3b8;display:block;margin-top:12px;margin-bottom:4px;">💸 Comisión total %</label>
+    <input type="number" id="cfgComision" placeholder="Ej: 0.2" min="0" step="0.01" style="font-size:16px;padding:14px;background:#0f172a;border:1px solid #334155;color:white;border-radius:12px;">
+    <div style="background:#0a1628;border:1px solid #1e3a5f;border-radius:10px;padding:10px;margin:10px 0;font-size:13px;">
+      <span style="color:#64748b;">Actuales: </span><span id="cfgActual" style="color:#60a5fa;font-weight:bold;"></span>
+    </div>
+    <button class="save" onclick="guardarConfig()" style="font-size:15px;padding:14px;">💾 Guardar</button>
+    <div id="cfgOk" style="display:none;margin-top:8px;background:#0c1f14;border:1px solid #14532d;border-radius:10px;padding:10px;text-align:center;color:#4ade80;font-size:13px;">✅ Guardado</div>
+  </div>
+</div>
+
+<!-- FILTROS -->
+<div class="filterBox">
+  <div style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;" onclick="toggleFiltros()">
+    <h3 style="margin:0;">🚫 Pares filtrados</h3><span id="filterArrow">⬇️</span>
+  </div>
+  <input type="text" id="filtroInput" placeholder="Ejemplo XRPUSDT">
+  <button class="delete" onclick="agregarFiltro()">Agregar Filtro</button>
+  <div id="listaFiltros" class="miniBox"></div>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <button class="tab active-alc" onclick="mostrar('rfibonacci',this,'alc')">📈 RFibonacci<br><span style="font-size:10px;opacity:.7;">4h · Alcista</span></button>
+  <button class="tab" onclick="mostrar('connor',this,'alc')">🧠 Connor RSI<br><span style="font-size:10px;opacity:.7;">4h · Alcista</span></button>
+  <button class="tab" onclick="mostrar('momentum',this,'alc')">⚡ Momentum<br><span style="font-size:10px;opacity:.7;">1h · Alcista</span></button>
+  <button class="tab" onclick="mostrar('lateral',this,'lat')">↔️ Lateral<br><span style="font-size:10px;opacity:.7;">4h · Canal</span></button>
+</div>
+
+<div id="scan-bloqueado" style="display:none;background:#1a0505;border:1px solid #dc2626;border-radius:12px;padding:12px 14px;margin-bottom:12px;font-size:13px;color:#fca5a5;text-align:center;">
+  🔴 <strong>Escaneo bloqueado</strong> — BTC en zona de peligro.<br>
+  <span style="font-size:12px;color:#94a3b8;">Esperá que el monitor de BTC vuelva a 🟢 verde para operar.</span>
+</div>
+
+<div id="rfibonacci" class="section show">
+  <button class="scan" onclick="escanear('RFibonacci','4h','rf')">🔍 Escanear RFibonacci · 4h</button>
+  <div class="scanning-box" id="scan-box-rf">📡 Consultando Binance...<br><span id="scan-txt-rf" style="font-size:12px;color:#475569;"></span><div class="prog-bg"><div id="scan-bar-rf" class="prog-fill" style="width:0%;background:linear-gradient(90deg,#2563eb,#60a5fa);"></div></div></div>
+  <div id="alertasRF" style="margin-top:10px;"></div>
+</div>
+<div id="connor" class="section">
+  <button class="scan" onclick="escanear('Connor RSI','4h','cn')">🔍 Escanear Connor RSI · 4h</button>
+  <div class="scanning-box" id="scan-box-cn">📡 Consultando Binance...<br><span id="scan-txt-cn" style="font-size:12px;color:#475569;"></span><div class="prog-bg"><div id="scan-bar-cn" class="prog-fill" style="width:0%;background:linear-gradient(90deg,#2563eb,#60a5fa);"></div></div></div>
+  <div id="alertasCN" style="margin-top:10px;"></div>
+</div>
+<div id="momentum" class="section">
+  <button class="scan" onclick="escanear('Momentum','1h','mo')">🔍 Escanear Momentum · 1h</button>
+  <div class="scanning-box" id="scan-box-mo">📡 Consultando Binance...<br><span id="scan-txt-mo" style="font-size:12px;color:#475569;"></span><div class="prog-bg"><div id="scan-bar-mo" class="prog-fill" style="width:0%;background:linear-gradient(90deg,#2563eb,#60a5fa);"></div></div></div>
+  <div id="alertasMO" style="margin-top:10px;"></div>
+</div>
+<div id="lateral" class="section">
+  <button class="scan-lat" onclick="escanear('Canal Keltner','4h','lat')">🔍 Escanear Lateral · 4h</button>
+  <div class="scanning-box" id="scan-box-lat">📡 Consultando Binance...<br><span id="scan-txt-lat" style="font-size:12px;color:#475569;"></span><div class="prog-bg"><div id="scan-bar-lat" class="prog-fill" style="width:0%;background:linear-gradient(90deg,#7c3aed,#a78bfa);"></div></div></div>
+  <div id="alertasLAT" style="margin-top:10px;"></div>
+</div>
+
+<!-- INVERSIONES -->
+<div class="inv-top">
+  <h2>💼 Mis Inversiones</h2>
+  <div class="ctrl-btns">
+    <button class="ctrl-btn" onclick="expandirTodas()">⬇️ Expandir</button>
+    <button class="ctrl-btn" onclick="minimizarTodas()">➖ Minimizar</button>
+    <button class="ctrl-btn" onclick="resetInversiones()" style="border-color:#dc2626;color:#f87171;">🗑️ Reset</button>
+  </div>
+</div>
+
+<!-- VERIFICAR PRECIO -->
+<div class="verif-box">
+  <div style="font-size:13px;color:#60a5fa;font-weight:bold;margin-bottom:8px;">🔎 Verificar precio en Binance</div>
+  <div style="display:flex;gap:8px;">
+    <input id="ver-input" type="text" placeholder="Ej: SOL o SOLUSDT" style="flex:1;margin-top:0;padding:10px;font-size:14px;">
+    <button onclick="verificarPrecio()" style="width:auto;margin-top:0;padding:10px 16px;background:#2563eb;border:none;border-radius:10px;color:white;font-weight:bold;cursor:pointer;font-size:13px;">Consultar</button>
+  </div>
+  <div id="ver-resultado" style="margin-top:8px;display:none;"></div>
+</div>
+
+<!-- BUSCADOR HISTORIAL -->
+<div class="buscador-box">
+  <div style="font-size:13px;color:#94a3b8;font-weight:bold;margin-bottom:8px;">🔍 Filtrar inversiones cerradas</div>
+  <select id="filtroHistorial" onchange="renderJugadas()" style="margin-top:0;font-size:14px;padding:10px;background:#0f172a;border:1px solid #334155;color:white;border-radius:10px;">
+    <option value="todas">Todas</option>
+    <option value="activas">Solo activas</option>
+    <option value="tp">Take Profit</option>
+    <option value="sl">Stop Loss</option>
+    <option value="manual">Cierre manual</option>
+    <option value="cancelada">Canceladas</option>
+  </select>
+</div>
+
+<div id="jugadas"></div>
+
+<script>
+// ══════════════════════════
+// VARIABLES
+// ══════════════════════════
+let capital          = parseFloat(localStorage.getItem("capital"))          || 1000;
+let invertido        = parseFloat(localStorage.getItem("invertido"))        || 0;
+let resultado        = parseFloat(localStorage.getItem("resultado"))        || 0;
+let rfGanancia       = parseFloat(localStorage.getItem("rfGanancia"))       || 0;
+let rfPerdida        = parseFloat(localStorage.getItem("rfPerdida"))        || 0;
+let connorGanancia   = parseFloat(localStorage.getItem("connorGanancia"))   || 0;
+let connorPerdida    = parseFloat(localStorage.getItem("connorPerdida"))    || 0;
+let momentumGanancia = parseFloat(localStorage.getItem("momentumGanancia")) || 0;
+let momentumPerdida  = parseFloat(localStorage.getItem("momentumPerdida"))  || 0;
+let keltGanancia     = parseFloat(localStorage.getItem("keltGanancia"))     || 0;
+let keltPerdida      = parseFloat(localStorage.getItem("keltPerdida"))      || 0;
+let totalWins        = parseInt(localStorage.getItem("totalWins"))           || 0;
+let totalLosses      = parseInt(localStorage.getItem("totalLosses"))         || 0;
+let cfgMinUsdt  = parseFloat(localStorage.getItem("cfgMinUsdt"))  || 10;
+let cfgComision = parseFloat(localStorage.getItem("cfgComision")) || 0.2;
+let jugadas = JSON.parse(localStorage.getItem("jugadas")) || [];
+let filtros = JSON.parse(localStorage.getItem("filtros")) || [];
+let minimizados = {};
+let escaneando = false;
+let alertasCache = {};
+let preciosLive = {}; // precios en tiempo real
+
+const BINANCE = "https://api.binance.com";
+const TF_SEG  = {"1h":3600,"4h":14400};
+const PARES = [
+  "BTCUSDT","ETHUSDT","SOLUSDT","BNBUSDT","AVAXUSDT",
+  "LINKUSDT","DOTUSDT","UNIUSDT","NEARUSDT","OPUSDT",
+  "ARBUSDT","INJUSDT","SUIUSDT","APTUSDT","ATOMUSDT",
+  "FILUSDT","RNDRUSDT","AAVEUSDT","WLDUSDT","LTCUSDT",
+  "TIAUSDT","SEIUSDT","FETUSDT","MKRUSDT","STXUSDT",
+  "JUPUSDT","TAOUSDT","ADAUSDT","DOGEUSDT","MATICUSDT"
+];
+
+/* Pares explícitamente excluidos por baja volatilidad relativa
+   o spread alto que destruye el TP:
+   XRP, TRX, SHIB, XLM, TON, ADA (muy lenta), DOGE (muy lento) */
+const LISTA_NEGRA = new Set([
+  "XRPUSDT","TRXUSDT","SHIBUSDT","XLMUSDT","TONUSDT",
+  "HBARUSDT","VETUSDT","ALGOUSDT","ZILUSDT","XTZUSDT"
+]);
+
+// ══════════════════════════
+// TIEMPO
+// ══════════════════════════
+function pad(n){return String(n).padStart(2,"0");}
+function segVela(tf){const d=TF_SEG[tf]||3600,n=Math.floor(Date.now()/1000);const r=d-(n%d);return r===0?d:r;}
+function fmtHMS(s){s=Math.max(0,Math.floor(s));const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),ss=s%60;return h>0?h+"h "+pad(m)+"m "+pad(ss)+"s":pad(m)+"m "+pad(ss)+"s";}
+function fmtDur(ms){if(!ms||ms<0)ms=0;const s=Math.floor(ms/1000),d=Math.floor(s/86400),h=Math.floor((s%86400)/3600),m=Math.floor((s%3600)/60),ss=s%60;if(d>0)return d+"d "+h+"h "+m+"m";if(h>0)return h+"h "+m+"m "+ss+"s";if(m>0)return m+"m "+ss+"s";return ss+"s";}
+function fmtFecha(ts){if(!ts)return"—";const d=new Date(ts);return d.toLocaleDateString("es-AR")+" "+d.toLocaleTimeString("es-AR",{hour:"2-digit",minute:"2-digit",second:"2-digit"});}
+function tieneVentana(tf){return tf==="1h"||tf==="4h";}
+function durVentana(tf){return tf==="4h"?12*3600*1000:3*3600*1000;}
+function txtVentana(tf){return tf==="4h"?"Ventana 12h":"Ventana 3h";}
+
+// ══════════════════════════
+// TP / SL / BE
+// ══════════════════════════
+const COM=()=>cfgComision/100;
+function calcSL(e,atr){return parseFloat((e-atr*1.5-e*COM()).toFixed(8));}
+function calcTP(e,atr){return parseFloat((e+atr*3.5+e*COM()).toFixed(8));}
+function calcSLlat(e,atr){return parseFloat((e-atr*1.0-e*COM()).toFixed(8));}
+function calcTPlat(e,atr){return parseFloat((e+atr*1.5+e*COM()).toFixed(8));}
+function calcBE(e){return parseFloat((e*(1+COM())).toFixed(8));}
+function fmt(n,d=8){return parseFloat(n).toFixed(d);}
+
+// ══════════════════════════
+// INDICADORES
+// ══════════════════════════
+function calcEMA(data,p){const k=2/(p+1);let e=data.slice(0,p).reduce((a,b)=>a+b,0)/p;for(let i=p;i<data.length;i++)e=data[i]*k+e*(1-k);return e;}
+function calcRSI(cl,p=14){let g=0,l=0;for(let i=1;i<=p;i++){const d=cl[i]-cl[i-1];d>0?g+=d:l+=Math.abs(d);}let ag=g/p,al=l/p;for(let i=p+1;i<cl.length;i++){const d=cl[i]-cl[i-1];ag=(ag*(p-1)+(d>0?d:0))/p;al=(al*(p-1)+(d<0?Math.abs(d):0))/p;}return 100-100/(1+(al===0?100:ag/al));}
+function calcADX(hi,lo,cl,p=14){const dp=[],dm=[],tr=[];for(let i=1;i<cl.length;i++){const u=hi[i]-hi[i-1],d=lo[i-1]-lo[i];dp.push(u>d&&u>0?u:0);dm.push(d>u&&d>0?d:0);tr.push(Math.max(hi[i]-lo[i],Math.abs(hi[i]-cl[i-1]),Math.abs(lo[i]-cl[i-1])));}function sm(a){let s=a.slice(0,p).reduce((x,y)=>x+y,0);const o=[s];for(let i=p;i<a.length;i++){s=s-s/p+a[i];o.push(s);}return o;}const sTR=sm(tr),sDp=sm(dp),sDm=sm(dm);const diP=sDp.map((v,i)=>sTR[i]?100*v/sTR[i]:0),diM=sDm.map((v,i)=>sTR[i]?100*v/sTR[i]:0);const dx=diP.map((v,i)=>{const s=v+diM[i];return s?100*Math.abs(v-diM[i])/s:0;});let adx=dx.slice(0,p).reduce((a,b)=>a+b,0)/p;for(let i=p;i<dx.length;i++)adx=(adx*(p-1)+dx[i])/p;return adx;}
+function calcATR(hi,lo,cl,p=14){const tr=[];for(let i=1;i<cl.length;i++)tr.push(Math.max(hi[i]-lo[i],Math.abs(hi[i]-cl[i-1]),Math.abs(lo[i]-cl[i-1])));const s=tr.slice(-p);return s.reduce((a,b)=>a+b,0)/s.length;}
+
+// ══════════════════════════
+// BINANCE API
+// ══════════════════════════
+async function fetchVelas(symbol,interval,limit=220){
+  const r=await fetch(`${BINANCE}/api/v3/klines?symbol=${symbol}&interval=${interval}&limit=${limit}`);
+  if(!r.ok)throw new Error("HTTP "+r.status);
+  const d=await r.json();
+  return{
+    cCloses:d.slice(0,-1).map(k=>parseFloat(k[4])),
+    cHighs: d.slice(0,-1).map(k=>parseFloat(k[2])),
+    cLows:  d.slice(0,-1).map(k=>parseFloat(k[3])),
+    cVols:  d.slice(0,-1).map(k=>parseFloat(k[5])),
+  };
+}
+async function fetchPrecio(symbol){
+  const r=await fetch(`${BINANCE}/api/v3/ticker/price?symbol=${symbol}`);
+  if(!r.ok)throw new Error("HTTP "+r.status);
+  const d=await r.json();
+  const p=parseFloat(d.price);
+  preciosLive[symbol]=p;
+  return p;
+}
+
+// ══════════════════════════
+// ACTUALIZAR PRECIOS EN VIVO
+// Llama Binance cada 15s para los pares activos
+// ══════════════════════════
+async function actualizarPreciosLive(){
+  const simbolos=new Set();
+  jugadas.filter(j=>j.estado&&(j.estado.includes("Esperando")||j.estado.includes("ENTRÓ"))).forEach(j=>simbolos.add(j.symbol));
+  for(const sym of simbolos){
+    try{
+      const p=await fetchPrecio(sym);
+      document.querySelectorAll(".live-precio-"+sym).forEach(el=>el.innerText=p.toFixed(8));
+      jugadas.forEach(j=>{
+        if(j.symbol!==sym)return;
+        // Verificar entrada para las que esperan
+        if(j.estado.includes("Esperando")&&p<=parseFloat(j.entrada)){
+          j.estado="🟢 ENTRÓ";j.tsEntrada=Date.now()-1000;j.precioEntradaReal=p.toFixed(8);
+          guardarTodo();renderJugadas();
+        }
+        // Verificar TP/SL para las que entraron
+        if(j.estado.includes("ENTRÓ")){
+          if(p>=parseFloat(j.tp))cerrarAutomatico(j,"🚀 TAKE PROFIT",p);
+          else if(p<=parseFloat(j.sl))cerrarAutomatico(j,"🛑 STOP LOSS",p);
+        }
+      });
+    }catch(e){}
+    await new Promise(r=>setTimeout(r,200));
+  }
+}
+setInterval(actualizarPreciosLive,5000);
+
+// ══════════════════════════
+// VERIFICAR PRECIO
+// ══════════════════════════
+async function verificarPrecio(){
+  let sym=(document.getElementById("ver-input").value||"").toUpperCase().trim();
+  if(!sym){alert("Ingresá un par");return;}
+  if(!sym.endsWith("USDT"))sym+="USDT";
+  const res=document.getElementById("ver-resultado");
+  res.style.display="block";res.innerHTML=`<span style="color:#64748b;">Consultando Binance...</span>`;
+  try{
+    const precio=await fetchPrecio(sym);
+    const ts=new Date().toLocaleTimeString("es-AR",{hour:"2-digit",minute:"2-digit",second:"2-digit"});
+    res.innerHTML=`<div style="background:#0c1f14;border:1px solid #14532d;border-radius:10px;padding:10px;text-align:center;">
+      <div style="font-size:20px;font-weight:bold;color:#4ade80;">${sym}: ${precio}</div>
+      <div style="font-size:11px;color:#64748b;margin-top:4px;">api.binance.com · ${ts}</div>
+    </div>`;
+  }catch(e){
+    res.innerHTML=`<div style="color:#f87171;">❌ ${e.message}<br><span style="font-size:12px;color:#64748b;">Verificá que el par exista y tenés conexión</span></div>`;
+  }
+}
+
+// ══════════════════════════
+// PANEL BTC 4H
+// ══════════════════════════
+// ══════════════════════════════════════
+//  BLOQUEO POR HORARIO DE BAJO VOLUMEN
+//  Bloqueado: Jueves 18:00 → Lunes 9:00 (hora Argentina)
+//  Dentro de semana: 00:00 → 9:00 (madrugada, bajo volumen)
+// ══════════════════════════════════════
+let horarioBloqueado = false;
+
+function verificarHorario(){
+  // Hora Argentina (UTC-3)
+  const ahora = new Date();
+  const utc = ahora.getTime() + ahora.getTimezoneOffset()*60000;
+  const arg = new Date(utc + (-3)*3600000);
+  const dia = arg.getDay();   // 0=Dom, 1=Lun, 2=Mar, 3=Mié, 4=Jue, 5=Vie, 6=Sáb
+  const hora = arg.getHours();
+  const min  = arg.getMinutes();
+  const horaDecimal = hora + min/60;
+
+  let bloqueado = false;
+  let motivo = "";
+  let proximaHab = null;
+
+  // Viernes todo el día, Sábado todo el día, Domingo todo el día
+  if(dia === 5 || dia === 6 || dia === 0){
+    bloqueado = true;
+    motivo = dia===5?"🔴 Viernes — bajo volumen institucional":
+             dia===6?"🔴 Sábado — mercado sin institucionales":
+                     "🔴 Domingo — mercado sin institucionales";
+    // Próxima habilitación: Lunes 9:00
+    const lunes = new Date(arg);
+    lunes.setDate(arg.getDate() + (dia===0?1:dia===5?3:2));
+    lunes.setHours(9,0,0,0);
+    proximaHab = lunes;
+  }
+  // Jueves después de las 18:00
+  else if(dia === 4 && horaDecimal >= 18){
+    bloqueado = true;
+    motivo = "🟡 Jueves 18h+ — institucionales cierran posiciones";
+    // Próxima habilitación: Lunes 9:00
+    const lunes = new Date(arg);
+    lunes.setDate(arg.getDate() + 3);
+    lunes.setHours(9,0,0,0);
+    proximaHab = lunes;
+  }
+  // Madrugada cualquier día de semana (00:00 a 9:00)
+  else if(dia >= 1 && dia <= 4 && horaDecimal < 9){
+    bloqueado = true;
+    motivo = "🌙 Madrugada — volumen bajo, señales poco confiables";
+    // Próxima habilitación: hoy 9:00
+    const hoy9 = new Date(arg);
+    hoy9.setHours(9,0,0,0);
+    proximaHab = hoy9;
+  }
+
+  horarioBloqueado = bloqueado;
+
+  // Actualizar aviso en pantalla
+  const avisoEl = document.getElementById("aviso-horario");
+  const habEl   = document.getElementById("aviso-horario-hab");
+  const contEl  = document.getElementById("aviso-horario-cont");
+
+  if(bloqueado){
+    if(avisoEl){
+      avisoEl.style.display = "block";
+      if(habEl) habEl.innerText = motivo;
+    }
+    if(proximaHab && contEl){
+      const diff = proximaHab - arg;
+      const hs   = Math.floor(diff/3600000);
+      const ms   = Math.floor((diff%3600000)/60000);
+      const dias = Math.floor(hs/24);
+      const hsr  = hs%24;
+      const txt  = dias>0 ? `${dias}d ${hsr}h ${ms}m` : hs>0 ? `${hs}h ${ms}m` : `${ms}m`;
+      contEl.innerText = `Se habilita el ${proximaHab.toLocaleDateString("es-AR",{weekday:"long"})} a las 9:00 AM · En ${txt}`;
+    }
+  }else{
+    if(avisoEl) avisoEl.style.display = "none";
+  }
+
+  actualizarBotonesScan();
+}
+
+// Actualizar cada minuto
+setInterval(verificarHorario, 60000);
+
+async function analizarBTC(){
+  try{
+    const[v,precio]=await Promise.all([fetchVelas("BTCUSDT","4h",220),fetchPrecio("BTCUSDT")]);
+    const cl=v.cCloses,hi=v.cHighs,lo=v.cLows;
+    const ema50=calcEMA(cl,50),adx=calcADX(hi,lo,cl,14);
+    const minAnt=Math.min(...lo.slice(-21,-1));
+    const pend=(cl[cl.length-1]-cl[cl.length-6])/cl[cl.length-6]*100;
+    const ts=new Date().toLocaleTimeString("es-AR",{hour:"2-digit",minute:"2-digit"});
+    let cls,tit,sub,acc,accBg,accCol,cerrar=false;
+
+    if(precio<ema50&&precio<minAnt){
+      cls="btc-rojo";tit="🔴 BTC rompió mínimo anterior";sub="Cambio de tendencia.";
+      acc="QUEDARSE EN USDT";accBg="#7f1d1d";accCol="#fca5a5";
+      cerrar=true;estadoBTC="PELIGRO";
+    }else if(precio<ema50){
+      cls="btc-naranja";tit="🟠 BTC cayó bajo EMA 50";sub="Altcoins caen el doble.";
+      acc="⚠️ CERRAR TODO";accBg="#c2410c";accCol="#fed7aa";
+      cerrar=true;estadoBTC="PELIGRO";
+    }else if(pend>8&&adx>40){
+      cls="btc-amarillo";tit="🟡 BTC parabólico (+"+pend.toFixed(1)+"%)";sub="Altcoins se quedan quietas.";
+      acc="CUIDADO — No abrir nuevas";accBg="#854d0e";accCol="#fef08a";
+      estadoBTC="CUIDADO";
+    }else{
+      cls="btc-verde";tit="🟢 BTC estable sobre EMA 50";sub="Condiciones ideales para operar.";
+      acc="✅ OPERAR NORMAL";accBg="#14532d";accCol="#4ade80";
+      estadoBTC="OK";
+    }
+
+    document.getElementById("btc-panel").className="btc-panel "+cls;
+    document.getElementById("btc-titulo").innerText=tit;
+    document.getElementById("btc-sub").innerText=sub;
+    document.getElementById("btc-datos").innerText=`BTC: $${precio.toFixed(0)} · EMA50: $${ema50.toFixed(0)} · ADX: ${adx.toFixed(1)}`;
+    const ae=document.getElementById("btc-accion");ae.innerText=acc;ae.style.background=accBg;ae.style.color=accCol;
+    document.getElementById("btc-ts").innerText="Actualizado: "+ts;
+
+    actualizarBotonesScan();
+    if(cerrar)cerrarTodasPorBTC(acc);
+  }catch(e){
+    document.getElementById("btc-titulo").innerText="⚠️ Sin conexión — verificá internet";
+    document.getElementById("btc-sub").innerText=e.message;
+    estadoBTC="ANALIZANDO";
+  }
+}
+
+function actualizarBotonesScan(){
+  const bloqueadoBTC    = estadoBTC==="PELIGRO";
+  const bloqueadoHor    = horarioBloqueado;
+  const bloqueado       = bloqueadoBTC || bloqueadoHor || estadoBTC==="ANALIZANDO";
+  const btns=document.querySelectorAll(".scan,.scan-lat");
+  btns.forEach(btn=>{
+    btn.disabled=bloqueado;
+    btn.style.opacity=bloqueado?"0.4":"1";
+    btn.style.cursor=bloqueado?"not-allowed":"pointer";
+  });
+  const avisoScan=document.getElementById("scan-bloqueado");
+  if(avisoScan) avisoScan.style.display=bloqueadoBTC&&!bloqueadoHor?"block":"none";
+}
+function cerrarTodasPorBTC(motivo){
+  const ab=jugadas.filter(j=>j.estado&&(j.estado.includes("Esperando")||j.estado.includes("ENTRÓ")));
+  if(!ab.length)return;
+  ab.forEach(j=>{
+    if(j.estado.includes("ENTRÓ")){
+      /* Solo calcular P&L si realmente entró */
+      const precio=preciosLive[j.symbol]||parseFloat(j.precioEntradaReal||j.entrada);
+      const pe=parseFloat(j.precioEntradaReal||j.entrada);
+      const pnl=((precio-pe)/pe)*j.usdt;
+      const esG=pnl>=0;
+      j.estado=esG?"🚀 TAKE PROFIT":"🛑 STOP LOSS";
+      j.tsCierre=Date.now();
+      j.precioCierre=precio.toFixed(8);
+      j.tipoCierre="btc";j.motivoCierre=motivo;
+      resultado+=pnl;capital+=j.usdt+pnl;invertido-=j.usdt;
+      if(esG){
+        totalWins++;
+        if(j.tipo==="RFibonacci")rfGanancia+=pnl;
+        if(j.tipo==="Connor RSI")connorGanancia+=pnl;
+        if(j.tipo==="Momentum")momentumGanancia+=pnl;
+        if(j.tipo==="Canal Keltner")keltGanancia+=pnl;
+      }else{
+        totalLosses++;
+        const p=Math.abs(pnl);
+        if(j.tipo==="RFibonacci")rfPerdida+=p;
+        if(j.tipo==="Connor RSI")connorPerdida+=p;
+        if(j.tipo==="Momentum")momentumPerdida+=p;
+        if(j.tipo==="Canal Keltner")keltPerdida+=p;
+      }
+    }else{
+      /* Estaba esperando entrada — cancelar sin P&L, devolver capital */
+      j.estado="❌ Cancelada";
+      j.tsCierre=Date.now();
+      j.tipoCierre="cancelada";
+      j.motivoCierre="No entró · "+motivo;
+      j.tsEntrada=null;
+      j.precioEntradaReal=null;
+      j.precioCierre=null;
+      capital+=j.usdt;invertido-=j.usdt;
+    }
+  });
+  guardarTodo();renderStats();renderJugadas();
+  alert("⚠️ "+motivo+"\n"+ab.length+" inversión(es) procesada(s).");
+}
+setInterval(analizarBTC,5*60*1000);
+
+// ══════════════════════════
+// VERIFICAR HISTORIAL
+// ══════════════════════════
+async function verificarHistorico(){
+  const act=jugadas.filter(j=>j.estado&&(j.estado.includes("Esperando")||j.estado.includes("ENTRÓ")));
+  if(!act.length)return;
+  for(const j of act){
+    try{
+      const iv=j.tf==="1h"?"1h":"4h";
+      const ts=Number(j.tsGuardada)||Date.now()-86400000;
+      const r=await fetch(`${BINANCE}/api/v3/klines?symbol=${j.symbol}&interval=${iv}&startTime=${ts}&limit=500`);
+      if(!r.ok)continue;
+      const velas=await r.json();
+      if(j.estado.includes("Esperando")){
+        let entro=null;
+        for(const v of velas){if(parseFloat(v[3])<=parseFloat(j.entrada)){entro=v[6];break;}}
+        if(!entro)continue;
+        j.estado="🟢 ENTRÓ";j.tsEntrada=entro;j.precioEntradaReal=fmt(parseFloat(j.entrada));
+      }
+      let tsTP=null,tsSL=null;
+      for(const v of velas){
+        if(v[0]<Number(j.tsEntrada))continue;
+        if(!tsTP&&parseFloat(v[2])>=parseFloat(j.tp))tsTP=v[6];
+        if(!tsSL&&parseFloat(v[3])<=parseFloat(j.sl))tsSL=v[6];
+        if(tsTP&&tsSL)break;
+      }
+      if(!tsTP&&!tsSL)continue;
+      const gano=tsTP&&(!tsSL||tsTP<=tsSL);
+      const pe=parseFloat(j.precioEntradaReal||j.entrada);
+      if(gano){
+        const g=((parseFloat(j.tp)-pe)/pe)*j.usdt;
+        j.estado="🚀 TAKE PROFIT";j.tsCierre=tsTP;j.precioCierre=fmt(parseFloat(j.tp));j.tipoCierre="tp";
+        resultado+=g;capital+=j.usdt+g;invertido-=j.usdt;totalWins++;
+        if(j.tipo==="RFibonacci")rfGanancia+=g;if(j.tipo==="Connor RSI")connorGanancia+=g;
+        if(j.tipo==="Momentum")momentumGanancia+=g;if(j.tipo==="Canal Keltner")keltGanancia+=g;
+      }else{
+        const p=((pe-parseFloat(j.sl))/pe)*j.usdt;
+        j.estado="🛑 STOP LOSS";j.tsCierre=tsSL;j.precioCierre=fmt(parseFloat(j.sl));j.tipoCierre="sl";
+        resultado-=p;capital+=j.usdt-p;invertido-=j.usdt;totalLosses++;
+        if(j.tipo==="RFibonacci")rfPerdida+=p;if(j.tipo==="Connor RSI")connorPerdida+=p;
+        if(j.tipo==="Momentum")momentumPerdida+=p;if(j.tipo==="Canal Keltner")keltPerdida+=p;
+      }
+    }catch(e){console.warn("Historial",j.symbol,":",e.message);}
+    await new Promise(r=>setTimeout(r,300));
+  }
+  guardarTodo();renderStats();renderJugadas();
+}
+
+// ══════════════════════════
+// CERRAR AUTOMÁTICO (TP/SL en vivo)
+// ══════════════════════════
+function cerrarAutomatico(j,estado,precio){
+  if(!j.estado.includes("ENTRÓ"))return;
+  const pe=parseFloat(j.precioEntradaReal||j.entrada);
+  const pnl=((precio-pe)/pe)*j.usdt;
+  j.estado=estado;j.tsCierre=Date.now();j.precioCierre=fmt(precio);
+  j.tipoCierre=estado.includes("PROFIT")?"tp":"sl";
+  resultado+=pnl;capital+=j.usdt+pnl;invertido-=j.usdt;
+  if(pnl>=0){totalWins++;if(j.tipo==="RFibonacci")rfGanancia+=pnl;if(j.tipo==="Connor RSI")connorGanancia+=pnl;if(j.tipo==="Momentum")momentumGanancia+=pnl;if(j.tipo==="Canal Keltner")keltGanancia+=pnl;}
+  else{totalLosses++;const p=Math.abs(pnl);if(j.tipo==="RFibonacci")rfPerdida+=p;if(j.tipo==="Connor RSI")connorPerdida+=p;if(j.tipo==="Momentum")momentumPerdida+=p;if(j.tipo==="Canal Keltner")keltPerdida+=p;}
+  guardarTodo();renderStats();renderJugadas();
+}
+
+// ══════════════════════════
+// ESCANEO
+// ══════════════════════════
+async function escanear(tipo,tf,prefix){
+  if(escaneando){alert("Escaneo en curso, esperá...");return;}
+  escaneando=true;
+  const divRes=document.getElementById(prefix==="rf"?"alertasRF":prefix==="cn"?"alertasCN":prefix==="mo"?"alertasMO":"alertasLAT");
+  const divScan=document.getElementById("scan-box-"+prefix);
+  const txtScan=document.getElementById("scan-txt-"+prefix);
+  const barScan=document.getElementById("scan-bar-"+prefix);
+  divRes.innerHTML="";divScan.style.display="block";
+  const paresActivos=new Set(jugadas.filter(j=>j.estado&&(j.estado.includes("Esperando")||j.estado.includes("ENTRÓ"))).map(j=>j.symbol));
+  const lista=PARES.filter(p=>!filtros.includes(p)&&!paresActivos.has(p)&&!LISTA_NEGRA.has(p));
+  const alertas=[];
+  for(let i=0;i<lista.length;i++){
+    const symbol=lista[i];
+    if(txtScan)txtScan.innerText=`${symbol} (${i+1}/${lista.length})`;
+    if(barScan)barScan.style.width=Math.round(((i+1)/lista.length)*100)+"%";
+    try{
+      const[vd,precio]=await Promise.all([fetchVelas(symbol,tf,220),fetchPrecio(symbol)]);
+      const cl=vd.cCloses,hi=vd.cHighs,lo=vd.cLows,vo=vd.cVols;
+      if(cl.length<60){await new Promise(r=>setTimeout(r,150));continue;}
+      const atr=calcATR(hi,lo,cl,14);
+      if(precio<0.01||(atr/precio)*100<1.5){await new Promise(r=>setTimeout(r,150));continue;}
+      const adx=calcADX(hi,lo,cl,14),ema200=calcEMA(cl,200),rsi=calcRSI(cl,14);
+      const volMA=vo.slice(-20).reduce((a,b)=>a+b,0)/20;
+      const rvol=volMA>0?vo[vo.length-1]/volMA:1;
+      // 3 velas cerradas
+      const adx3=[calcADX(hi.slice(0,-2),lo.slice(0,-2),cl.slice(0,-2),14),calcADX(hi.slice(0,-1),lo.slice(0,-1),cl.slice(0,-1),14),adx];
+      const ema3=[calcEMA(cl.slice(0,-2),200),calcEMA(cl.slice(0,-1),200),ema200];
+      const pr3=cl.slice(-3);
+      let ok=false;
+      if(tipo==="Canal Keltner"){ok=adx3.every(v=>v<20)&&rsi<35&&(volMA>0&&vo[vo.length-1]<volMA*0.8);}
+      else{ok=adx3.every(v=>v>25)&&pr3.every((p,i)=>p>ema3[i])&&rvol>1.0;}
+      if(!ok){await new Promise(r=>setTimeout(r,150));continue;}
+      const esLat=tipo==="Canal Keltner";
+      const sl=esLat?calcSLlat(precio,atr):calcSL(precio,atr);
+      const tp=esLat?calcTPlat(precio,atr):calcTP(precio,atr);
+      const be=calcBE(precio);
+      const id=Date.now()+Math.random();
+      alertasCache[id]={id,tipo,symbol,tf,entrada:precio,precio,tp,sl,be,atr,adx:adx.toFixed(1),rvol:rvol.toFixed(2),rsi:rsi.toFixed(1),tendencia:esLat?"LATERAL":"ALCISTA"};
+      alertas.push(id);
+    }catch(e){console.warn("Scan",symbol,":",e.message);}
+    await new Promise(r=>setTimeout(r,200));
+  }
+  divScan.style.display="none";escaneando=false;
+  if(!alertas.length){divRes.innerHTML=`<p style="color:#64748b;text-align:center;padding:20px;">🔍 Sin señales confirmadas para ${tipo}<br><span style="font-size:12px;">Datos reales de Binance · 3 velas cerradas confirmadas</span></p>`;return;}
+  divRes.innerHTML=alertas.map(id=>htmlAlerta(alertasCache[id])).join("");
+}
+
+function htmlAlerta(a){
+  const esLat=a.tendencia==="LATERAL";
+  const tC=esLat?"#c4b5fd":"#4ade80",tB=esLat?"#2e1065":"#14532d",tBo=esLat?"#7c3aed":"#16a34a",tT=esLat?"↔️ LATERAL":"📈 ALCISTA";
+  return`<div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">
+      <div><h3 style="margin:0 0 3px 0;font-size:18px;">${a.symbol}</h3><span style="font-size:12px;color:#64748b;">${a.tipo} · ${a.tf} · ADX ${a.adx} · RSI ${a.rsi} · RVOL ${a.rvol}x</span></div>
+      <span style="background:${tB};border:1px solid ${tBo};color:${tC};padding:5px 10px;border-radius:8px;font-size:12px;font-weight:bold;white-space:nowrap;">${tT}</span>
+    </div>
+    <div style="background:#0a1a0a;border:1px solid #4ade80;border-radius:12px;padding:12px;text-align:center;margin-bottom:12px;">
+      <div style="font-size:22px;font-weight:bold;color:#4ade80;">🟢 COMPRAR</div>
+    </div>
+    <div style="background:#0f172a;border-radius:12px;padding:12px;font-size:14px;line-height:2.2;">
+      <div style="display:flex;justify-content:space-between;"><span style="color:#64748b;">💰 Precio actual</span><strong class="live-precio-${a.symbol}" style="color:#22c55e;">${fmt(a.precio)}</strong></div>
+      <div style="display:flex;justify-content:space-between;"><span style="color:#64748b;">🎯 Entrada</span><strong>${fmt(a.entrada)}</strong></div>
+      <div style="display:flex;justify-content:space-between;"><span style="color:#64748b;">🚀 Take Profit</span><strong style="color:#4ade80;">${fmt(a.tp)}</strong></div>
+      <div style="display:flex;justify-content:space-between;"><span style="color:#64748b;">🛑 Stop Loss</span><strong style="color:#f87171;">${fmt(a.sl)}</strong></div>
+      <div style="display:flex;justify-content:space-between;"><span style="color:#64748b;">⚖️ Break-even</span><strong style="color:#facc15;">${fmt(a.be)}</strong></div>
+    </div>
+    <input type="number" id="u-${a.id}" placeholder="Mín. ${cfgMinUsdt} USDT a invertir" min="${cfgMinUsdt}" style="margin-top:10px;font-size:16px;padding:14px;">
+    <button class="save" onclick="guardarAlerta('${a.id}')" style="font-size:15px;padding:14px;margin-top:8px;">📌 Guardar inversión</button>
+  </div>`;
+}
+
+function guardarAlerta(id){
+  const a=alertasCache[id];if(!a){alert("Recargá el escaneo");return;}
+  const inp=document.getElementById("u-"+id);
+  const usdt=parseFloat(inp?inp.value:"");
+  if(isNaN(usdt)||usdt<=0){alert("Ingresá los USDT a invertir");return;}
+  if(usdt<cfgMinUsdt){alert(`Mínimo ${cfgMinUsdt} USDT`);return;}
+  if(usdt>capital){alert("Capital insuficiente. Disponible: "+capital.toFixed(2)+" USDT");return;}
+  const ya=jugadas.find(j=>j.symbol===a.symbol&&(j.estado.includes("Esperando")||j.estado.includes("ENTRÓ")));
+  if(ya){alert(`Ya tenés inversión activa de ${a.symbol}`);return;}
+  capital-=usdt;invertido+=usdt;
+  jugadas.push({id:Date.now(),tipo:a.tipo,symbol:a.symbol,tf:a.tf,usdt,entrada:a.entrada,tp:a.tp,sl:a.sl,be:a.be,atr:a.atr,estado:"⏳ Esperando entrada",tendencia:a.tendencia,tsGuardada:Date.now(),tsEntrada:null,tsCierre:null,precioEntradaReal:null,precioCierre:null,tipoCierre:null});
+  delete alertasCache[id];
+  const card=inp?.closest(".card");if(card)card.remove();
+  guardarTodo();renderStats();renderJugadas();
+}
+
+// ══════════════════════════
+// CERRAR MANUAL
+// ══════════════════════════
+async function cerrarManual(id){
+  const j=jugadas.find(x=>x.id===id);if(!j)return;
+  // Obtener precio actual de Binance
+  let precioActual=null;
+  try{precioActual=await fetchPrecio(j.symbol);}catch(e){}
+  const confirmar=confirm(`Cerrar ${j.symbol} al precio actual de Binance:\n${precioActual?precioActual:"no disponible"}\n\n¿Confirmás?`);
+  if(!confirmar)return;
+  const pc=precioActual||parseFloat(j.precioEntradaReal||j.entrada);
+  const pe=parseFloat(j.precioEntradaReal||j.entrada);
+  const pnl=((pc-pe)/pe)*j.usdt;
+  const esG=pnl>=0;
+  j.estado=esG?"🚀 TAKE PROFIT":"🛑 STOP LOSS";
+  j.tsCierre=Date.now();j.precioCierre=fmt(pc);j.tipoCierre="manual";j.cierreManual=true;
+  resultado+=pnl;capital+=j.usdt+pnl;invertido-=j.usdt;
+  if(esG){totalWins++;if(j.tipo==="RFibonacci")rfGanancia+=pnl;if(j.tipo==="Connor RSI")connorGanancia+=pnl;if(j.tipo==="Momentum")momentumGanancia+=pnl;if(j.tipo==="Canal Keltner")keltGanancia+=pnl;}
+  else{totalLosses++;const p=Math.abs(pnl);if(j.tipo==="RFibonacci")rfPerdida+=p;if(j.tipo==="Connor RSI")connorPerdida+=p;if(j.tipo==="Momentum")momentumPerdida+=p;if(j.tipo==="Canal Keltner")keltPerdida+=p;}
+  guardarTodo();renderStats();renderJugadas();
+}
+
+function eliminarJugada(id){
+  const j=jugadas.find(x=>x.id===id);if(!j)return;
+  const cerrada=j.estado&&(j.estado.includes("PROFIT")||j.estado.includes("LOSS")||j.estado.includes("Cancelada"));
+  if(!cerrada){capital+=j.usdt;invertido-=j.usdt;}
+  jugadas=jugadas.filter(x=>x.id!==id);delete minimizados[id];
+  guardarTodo();renderStats();renderJugadas();
+}
+
+function resetInversiones(){
+  if(!confirm("¿Borrás todas las inversiones? Esto es para demo/prueba."))return;
+  // Devolver capital de las activas
+  jugadas.filter(j=>j.estado&&(j.estado.includes("Esperando")||j.estado.includes("ENTRÓ"))).forEach(j=>{capital+=j.usdt;invertido-=j.usdt;});
+  jugadas=[];minimizados={};
+  guardarTodo();renderStats();renderJugadas();
+}
+
+// ══════════════════════════
+// RENDER JUGADAS
+// ══════════════════════════
+function toggleJugada(id){minimizados[id]=!minimizados[id];
+  const b=document.getElementById("jb-"+id),h=document.getElementById("jh-"+id),t=document.getElementById("jt-"+id);
+  if(!b)return;
+  if(minimizados[id]){b.classList.add("oculto");h.classList.add("cerrado");t.innerText="＋";}
+  else{b.classList.remove("oculto");h.classList.remove("cerrado");t.innerText="－";}
+}
+function minimizarTodas(){jugadas.forEach(j=>{minimizados[j.id]=true;});renderJugadas();}
+function expandirTodas(){jugadas.forEach(j=>{minimizados[j.id]=false;});renderJugadas();}
+
+function renderJugadas(){
+  const div=document.getElementById("jugadas");div.innerHTML="";
+  const filtro=(document.getElementById("filtroHistorial")||{value:"todas"}).value;
+
+  const filtradas=jugadas.filter(j=>{
+    if(filtro==="todas")return true;
+    if(filtro==="activas")return j.estado&&(j.estado.includes("Esperando")||j.estado.includes("ENTRÓ"));
+    if(filtro==="tp")return j.tipoCierre==="tp";
+    if(filtro==="sl")return j.tipoCierre==="sl";
+    if(filtro==="manual")return j.tipoCierre==="manual";
+    if(filtro==="cancelada")return j.tipoCierre==="cancelada"||j.estado?.includes("Cancelada");
+    return true;
+  });
+
+  if(!filtradas.length){div.innerHTML=`<p style="color:#64748b;text-align:center;padding:16px;">Sin inversiones que coincidan con el filtro.</p>`;return;}
+
+  filtradas.forEach(j=>{
+    const mini=!!minimizados[j.id];
+    const cerrada=j.estado&&(j.estado.includes("PROFIT")||j.estado.includes("LOSS")||j.estado.includes("Cancelada"));
+    const esperando=j.estado&&j.estado.includes("Esperando");
+    const activa=j.estado&&j.estado.includes("ENTRÓ");
+    const pe=parseFloat(j.precioEntradaReal||j.entrada);
+    const precioLive=preciosLive[j.symbol]||null;
+
+    // P&L en tiempo real para activas
+    let pnlLive=null;
+    if(activa&&precioLive){pnlLive=((precioLive-pe)/pe)*j.usdt;}
+
+    // ── CERRADA ──
+    if(cerrada){
+      const esTP=j.estado.includes("PROFIT");
+      const pnl=j.precioCierre&&j.tsEntrada?((parseFloat(j.precioCierre)-pe)/pe)*j.usdt:null;
+      const pnlStr=pnl!==null?(pnl>=0?"+":"")+pnl.toFixed(2)+" USDT":"—";
+      const pnlC=pnl>=0?"#4ade80":"#f87171";
+      const bg=esTP?"#0c1a0c":j.estado.includes("Cancelada")?"#1a1a2e":"#1a0a0a";
+      const bo=esTP?"#14532d":j.estado.includes("Cancelada")?"#334155":"#7f1d1d";
+      const ico=esTP?"🚀":j.estado.includes("Cancelada")?"❌":"🛑";
+      const dur=j.tsCierre&&j.tsEntrada?fmtDur(j.tsCierre-j.tsEntrada):"—";
+      // Tipo de cierre en texto
+      let tipoCierreTxt="";
+      if(j.tipoCierre==="tp")tipoCierreTxt="Take Profit automático";
+      else if(j.tipoCierre==="sl")tipoCierreTxt="Stop Loss automático";
+      else if(j.tipoCierre==="manual")tipoCierreTxt="Cierre manual";
+      else if(j.tipoCierre==="btc")tipoCierreTxt="Cierre por señal BTC";
+      else if(j.tipoCierre==="cancelada")tipoCierreTxt="Cancelada";
+      div.innerHTML+=`<div style="background:${bg};border:1px solid ${bo};border-radius:14px;padding:12px 14px;margin-bottom:10px;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+          <div>
+            <div style="font-weight:bold;font-size:15px;">${ico} ${j.symbol}</div>
+            <div style="font-size:12px;color:#64748b;margin-top:2px;">${j.tipo} · ${j.tf} · ${j.usdt} USDT</div>
+            <div style="font-size:12px;color:#94a3b8;margin-top:2px;">${tipoCierreTxt} · ${dur}</div>
+            ${pnl!==null?`<div style="font-size:14px;font-weight:bold;color:${pnlC};margin-top:4px;">${pnlStr}</div>`:""}
+            ${j.motivoCierre?`<div style="font-size:11px;color:#f97316;margin-top:2px;">⚠️ ${j.motivoCierre}</div>`:""}
+          </div>
+          <button onclick="eliminarJugada(${j.id})" style="width:auto;margin-top:0;padding:6px 12px;background:#334155;border:none;border-radius:8px;color:#94a3b8;font-size:12px;cursor:pointer;flex-shrink:0;margin-left:8px;">✕</button>
+        </div>
+        <div style="margin-top:8px;font-size:12px;color:#64748b;line-height:1.8;">
+          ${j.tsEntrada?`🟢 Entrada: ${fmtFecha(j.tsEntrada)} · Precio: ${j.precioEntradaReal||"—"}<br>`:""}
+          ${j.tsCierre&&j.precioCierre?`🏁 Cierre: ${fmtFecha(j.tsCierre)} · Precio: ${j.precioCierre}`
+            :j.tsCierre?`🏁 ${fmtFecha(j.tsCierre)}`:""}
+        </div>
+      </div>`;
+      return;
+    }
+
+    // ── ACTIVA ──
+    const tendBadge=j.tendencia==="LATERAL"
+      ?`<span style="background:#2e1065;border:1px solid #7c3aed;color:#c4b5fd;padding:2px 7px;border-radius:5px;font-size:11px;font-weight:bold;">↔️ LATERAL</span>`
+      :`<span style="background:#14532d;border:1px solid #16a34a;color:#4ade80;padding:2px 7px;border-radius:5px;font-size:11px;font-weight:bold;">📈 ALCISTA</span>`;
+
+    // P&L para mostrar en la solapa
+    let pnlSolapa="";
+    if(pnlLive!==null){
+      const pnlC=pnlLive>=0?"#4ade80":"#f87171";
+      const pct=((precioLive-pe)/pe*100).toFixed(2);
+      pnlSolapa=`<div class="jugada-pnl" style="color:${pnlC};" id="pnl-${j.id}">${pnlLive>=0?"+":""}${pnlLive.toFixed(2)} USDT (${pct}%)</div>`;
+    }
+
+    div.innerHTML+=`<div class="jugada-card">
+      <div class="${mini?"jugada-header cerrado":"jugada-header"}" id="jh-${j.id}" onclick="toggleJugada(${j.id})">
+        <div class="jugada-hdr-left">
+          <div class="jugada-titulo">${j.symbol}</div>
+          <div class="jugada-mini">${j.tipo} · ${j.tf} · ${j.usdt} USDT · ${j.estado}</div>
+          ${pnlSolapa}
+        </div>
+        <button class="btn-toggle" id="jt-${j.id}" onclick="event.stopPropagation();toggleJugada(${j.id})">${mini?"＋":"－"}</button>
+      </div>
+      <div class="${mini?"jugada-body oculto":"jugada-body"}" id="jb-${j.id}">
+        <p>📌 ${j.tipo} <span style="background:#1e293b;border:1px solid #475569;color:#94a3b8;padding:2px 7px;border-radius:5px;font-size:11px;">⏱ ${j.tf}</span> &nbsp; ${tendBadge}</p>
+        <p>💵 Invertido: <strong>${j.usdt} USDT</strong></p>
+        <div class="precio-live-box">
+          <span class="precio-live-lbl">💰 Precio actual</span>
+          <span class="precio-live-val live-precio-${j.symbol}" id="pl-${j.id}">${precioLive?fmt(precioLive):"Cargando..."}</span>
+        </div>
+        <p>🎯 Entrada: <strong>${fmt(j.entrada)}</strong></p>
+        <p><span style="color:#4ade80;">🚀 TP: <strong>${fmt(j.tp)}</strong></span></p>
+        <p><span style="color:#f87171;">🛑 SL: <strong>${fmt(j.sl)}</strong></span></p>
+        <p style="color:#facc15;">⚖️ BE: <strong>${fmt(j.be)}</strong></p>
+        ${esperando?`<div class="vela-box"><span class="vela-icon">🕯</span><div class="vela-info">
+          <span class="vela-lbl">Cierre vela (${j.tf})</span>
+          <span class="vela-val" id="vv-${j.id}">${fmtHMS(segVela(j.tf))}</span>
+          <div class="vela-prog"><div class="vela-prog-fill" id="vb-${j.id}" style="width:${Math.round((1-segVela(j.tf)/(TF_SEG[j.tf]||3600))*100)}%;"></div></div>
+        </div></div>`:""}
+        ${esperando&&tieneVentana(j.tf)?`<div class="espera-box">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:3px;">
+            <span style="font-size:11px;color:#4ade80;text-transform:uppercase;">⏰ Para entrar</span>
+            <span style="font-size:11px;color:#64748b;">${txtVentana(j.tf)}</span>
+          </div>
+          <div class="espera-val" id="ev-${j.id}">${fmtHMS(Math.floor(Math.max(0,durVentana(j.tf)-(Date.now()-j.tsGuardada))/1000))}</div>
+          <div class="espera-sub">Desde que guardaste</div>
+          <div class="espera-bar"><div class="espera-bar-fill" id="eb-${j.id}" style="width:${Math.min(100,Math.round((Date.now()-j.tsGuardada)/durVentana(j.tf)*100))}%;"></div></div>
+        </div>`:""}
+        ${activa?`<div class="crono-box"><span class="crono-icon">⏱</span><div class="crono-info">
+          <span class="crono-lbl">Tiempo en operación</span>
+          <span class="crono-val" id="cr-${j.id}">${fmtDur(Math.max(1000,Date.now()-Number(j.tsEntrada||Date.now()-1000)))}</span>
+          <span class="crono-sub">Entrada: ${fmtFecha(j.tsEntrada)}<br>Precio entrada: <strong style="color:#4ade80;">${j.precioEntradaReal||"—"}</strong></span>
+        </div></div>`:""}
+        <div class="op-log"><div class="op-log-lbl">📋 Historial</div>
+          <div class="op-row"><span class="op-key">📥 Guardada</span><span class="op-val">${fmtFecha(j.tsGuardada)}</span></div>
+          ${j.tsEntrada?`<div class="op-row"><span class="op-key">🟢 Entrada</span><span class="op-val">${fmtFecha(j.tsEntrada)}<br><span style="color:#4ade80;font-size:11px;">${j.precioEntradaReal||"—"}</span></span></div>`:""}
+        </div>
+        <div class="${j.estado.includes("Esperando")?"status st-espera":j.estado.includes("ENTRÓ")?"status st-entro":"status st-cancel"}">${j.estado}</div>
+        ${activa?`<div style="background:#0f1f2e;border:1px solid #1e3a5f;border-radius:12px;padding:12px;margin-top:10px;">
+          <div style="font-size:12px;color:#94a3b8;margin-bottom:8px;">Cierra al precio actual de Binance en tiempo real</div>
+          <button onclick="cerrarManual(${j.id})" style="background:#7c3aed;border:none;border-radius:10px;padding:12px;width:100%;color:white;font-weight:bold;cursor:pointer;margin-top:0;">✅ Cerrar al precio actual</button>
+        </div>`:""}
+        <button class="delete" onclick="eliminarJugada(${j.id})" style="margin-top:8px;">❌ Eliminar</button>
+      </div>
+    </div>`;
+  });
+}
+
+// ══════════════════════════
+// LOOP 1 SEGUNDO
+// ══════════════════════════
+setInterval(()=>{
+  const ahora=Date.now();
+  jugadas.forEach(j=>{
+    if(!j.estado)return;
+    if(j.estado.includes("Esperando")){
+      const seg=segVela(j.tf),dur=TF_SEG[j.tf]||3600,pct=Math.round((1-seg/dur)*100);
+      const vv=document.getElementById("vv-"+j.id);if(vv)vv.innerText=fmtHMS(seg);
+      const vb=document.getElementById("vb-"+j.id);if(vb)vb.style.width=pct+"%";
+      if(tieneVentana(j.tf)){
+        const rm=Math.max(0,durVentana(j.tf)-(ahora-j.tsGuardada)),rs=Math.floor(rm/1000);
+        const pe=Math.min(100,Math.round((ahora-j.tsGuardada)/durVentana(j.tf)*100));
+        const ev=document.getElementById("ev-"+j.id);if(ev)ev.innerText=rs>0?fmtHMS(rs):"⚡ Tiempo agotado";
+        const eb=document.getElementById("eb-"+j.id);if(eb)eb.style.width=pe+"%";
+      }
+    }
+    if(j.estado.includes("ENTRÓ")&&j.tsEntrada){
+      const cr=document.getElementById("cr-"+j.id);
+      if(cr)cr.innerText=fmtDur(Math.max(1000,ahora-Number(j.tsEntrada)));
+      // P&L en solapa en tiempo real
+      const precioLive=preciosLive[j.symbol];
+      if(precioLive){
+        const pe=parseFloat(j.precioEntradaReal||j.entrada);
+        const pnl=((precioLive-pe)/pe)*j.usdt;
+        const pct=((precioLive-pe)/pe*100).toFixed(2);
+        const pnlC=pnl>=0?"#4ade80":"#f87171";
+        const ep=document.getElementById("pnl-"+j.id);
+        if(ep){ep.innerText=`${pnl>=0?"+":""}${pnl.toFixed(2)} USDT (${pct}%)`;ep.style.color=pnlC;}
+      }
+    }
+  });
+},1000);
+
+// ══════════════════════════
+// STORAGE Y UI
+// ══════════════════════════
+function guardarTodo(){
+  localStorage.setItem("jugadas",JSON.stringify(jugadas));
+  localStorage.setItem("capital",capital);localStorage.setItem("invertido",invertido);localStorage.setItem("resultado",resultado);
+  localStorage.setItem("rfGanancia",rfGanancia);localStorage.setItem("rfPerdida",rfPerdida);
+  localStorage.setItem("connorGanancia",connorGanancia);localStorage.setItem("connorPerdida",connorPerdida);
+  localStorage.setItem("momentumGanancia",momentumGanancia);localStorage.setItem("momentumPerdida",momentumPerdida);
+  localStorage.setItem("keltGanancia",keltGanancia);localStorage.setItem("keltPerdida",keltPerdida);
+  localStorage.setItem("totalWins",totalWins);localStorage.setItem("totalLosses",totalLosses);
+}
+function claseNum(v){return v>0?"num-pos":v<0?"num-neg":"num-neu";}
+function setNum(id,v){const el=document.getElementById(id);if(!el)return;el.innerText=v.toFixed(2);el.className=claseNum(v);}
+function renderStats(){
+  document.getElementById("capitalDisponible").innerText=capital.toFixed(2);
+  document.getElementById("invertido").innerText=invertido.toFixed(2);
+  setNum("resultado",resultado);
+  document.getElementById("rfGanancia").innerText=rfGanancia.toFixed(2);document.getElementById("rfPerdida").innerText=rfPerdida.toFixed(2);setNum("rfTotal",rfGanancia-rfPerdida);
+  document.getElementById("connorGanancia").innerText=connorGanancia.toFixed(2);document.getElementById("connorPerdida").innerText=connorPerdida.toFixed(2);setNum("connorTotal",connorGanancia-connorPerdida);
+  document.getElementById("momentumGanancia").innerText=momentumGanancia.toFixed(2);document.getElementById("momentumPerdida").innerText=momentumPerdida.toFixed(2);setNum("momentumTotal",momentumGanancia-momentumPerdida);
+  document.getElementById("keltGanancia").innerText=keltGanancia.toFixed(2);document.getElementById("keltPerdida").innerText=keltPerdida.toFixed(2);setNum("keltTotal",keltGanancia-keltPerdida);
+  const tot=totalWins+totalLosses;
+  const wr=document.getElementById("winRate");if(wr)wr.innerText=tot>0?Math.round(totalWins/tot*100)+"%":"—";
+  document.getElementById("totalWins").innerText=totalWins;document.getElementById("totalLosses").innerText=totalLosses;document.getElementById("totalOps").innerText=tot;
+}
+function editarCapital(){const b=document.getElementById("editarCapitalBox");b.style.display=b.style.display==="none"?"block":"none";}
+function guardarCapital(){const v=parseFloat(document.getElementById("capitalInput").value);if(isNaN(v)||v<=0){alert("Capital inválido");return;}capital=v;localStorage.setItem("capital",capital);renderStats();document.getElementById("editarCapitalBox").style.display="none";}
+function toggleStats(){const b=document.getElementById("statsDetail"),a=document.getElementById("statsArrow");const ok=b.style.display==="block";b.style.display=ok?"none":"block";a.innerText=ok?"⬇️":"⬆️";}
+function toggleFiltros(){const b=document.getElementById("listaFiltros"),a=document.getElementById("filterArrow");const ok=b.style.display==="block";b.style.display=ok?"none":"block";a.innerText=ok?"⬇️":"⬆️";}
+function toggleConfig(){const b=document.getElementById("configDetail"),a=document.getElementById("configArrow");const ok=b.style.display==="none"||b.style.display==="";b.style.display=ok?"block":"none";a.innerText=ok?"⬆️":"⬇️";}
+function actualizarCfg(){const el=document.getElementById("cfgActual");if(el)el.innerText=`Mín. ${cfgMinUsdt} USDT · Comisión ${cfgComision}%`;}
+function cargarConfigUI(){const m=document.getElementById("cfgMinUsdt");if(m)m.value=cfgMinUsdt;const c=document.getElementById("cfgComision");if(c)c.value=cfgComision;actualizarCfg();const b=document.getElementById("configDetail");if(b)b.style.display="block";const a=document.getElementById("configArrow");if(a)a.innerText="⬆️";}
+function guardarConfig(){const m=parseFloat(document.getElementById("cfgMinUsdt").value);const c=parseFloat(document.getElementById("cfgComision").value);if(isNaN(m)||m<=0){alert("Mínimo inválido");return;}if(isNaN(c)||c<0){alert("Comisión inválida");return;}cfgMinUsdt=m;cfgComision=c;localStorage.setItem("cfgMinUsdt",m);localStorage.setItem("cfgComision",c);actualizarCfg();const r=document.getElementById("cfgOk");if(r){r.style.display="block";setTimeout(()=>r.style.display="none",2000);}}
+function resetStats(){if(!confirm("¿Resetear estadísticas?"))return;localStorage.clear();location.reload();}
+function mostrar(id,btn,tipo){document.querySelectorAll(".section").forEach(s=>s.classList.remove("show"));document.getElementById(id).classList.add("show");document.querySelectorAll(".tab").forEach(t=>{t.classList.remove("active-alc");t.classList.remove("active-lat");});btn.classList.add(tipo==="lat"?"active-lat":"active-alc");}
+function agregarFiltro(){const v=document.getElementById("filtroInput").value.toUpperCase().trim();if(!v)return;if(!filtros.includes(v)){filtros.push(v);localStorage.setItem("filtros",JSON.stringify(filtros));renderFiltros();}document.getElementById("filtroInput").value="";}
+function eliminarFiltro(p){filtros=filtros.filter(f=>f!==p);localStorage.setItem("filtros",JSON.stringify(filtros));renderFiltros();}
+function renderFiltros(){const d=document.getElementById("listaFiltros");d.innerHTML="";filtros.forEach(f=>{d.innerHTML+=`<div class="filterItem"><span>${f}</span><button class="delete" onclick="eliminarFiltro('${f}')">Eliminar</button></div>`;});}
+
+// ══════════════════════════════════════
+//  VERIFICAR HISTORIAL BTC
+//  Al abrir el bot, revisa las velas de BTC 4h
+//  desde la última vez que se abrió y detecta
+//  si en algún momento se cumplió una condición de peligro
+// ══════════════════════════════════════
+async function verificarHistoricoBTC(){
+  const ultimaVez=parseInt(localStorage.getItem("ultimaApertura"))||Date.now()-4*3600*1000;
+  localStorage.setItem("ultimaApertura",Date.now());
+
+  const activas=jugadas.filter(j=>j.estado&&(j.estado.includes("Esperando")||j.estado.includes("ENTRÓ")));
+  if(!activas.length) return;
+
+  try{
+    // Traer velas BTC 4h desde la última apertura
+    const url=`${BINANCE}/api/v3/klines?symbol=BTCUSDT&interval=4h&startTime=${ultimaVez}&limit=100`;
+    const r=await fetch(url);
+    if(!r.ok) return;
+    const velas=await r.json();
+    if(!velas.length) return;
+
+    // Para cada vela, calcular EMA50 y mínimo anterior
+    // Necesitamos historia más larga para EMA50
+    const vHist=await fetchVelas("BTCUSDT","4h",220);
+    const closesHist=vHist.cCloses;
+    const lowsHist=vHist.cLows;
+
+    let condicionPeligro=null;
+    let tsPeligro=null;
+
+    for(let i=0;i<velas.length;i++){
+      const vela=velas[i];
+      const tsVela=vela[0];
+      const lowVela=parseFloat(vela[3]);
+      const closeVela=parseFloat(vela[4]);
+      const highVela=parseFloat(vela[2]);
+
+      // Calcular EMA50 con los datos históricos + velas hasta este punto
+      const closesHasta=[...closesHist,closeVela];
+      const ema50=calcEMA(closesHasta,50);
+
+      // Mínimo de las últimas 20 velas anteriores
+      const lowsHasta=[...lowsHist.slice(0,-1),lowVela];
+      const minAnt=Math.min(...lowsHasta.slice(-21,-1));
+
+      // ¿Cayó bajo EMA50?
+      if(lowVela<ema50&&!condicionPeligro){
+        // ¿Rompió mínimo anterior también?
+        if(lowVela<minAnt){
+          condicionPeligro="🔴 BTC rompió mínimo anterior — QUEDARSE EN USDT";
+        }else{
+          condicionPeligro="🟠 BTC cayó bajo EMA 50 — CERRAR TODO";
+        }
+        tsPeligro=tsVela;
+      }
+    }
+
+    if(condicionPeligro){
+      // Cerrar todas las inversiones activas con el precio aproximado de ese momento
+      // Para las que ya habían entrado, usar el precio de cierre de esa vela BTC como referencia
+      // pero el precio de cierre real de cada altcoin hay que buscarlo
+      const tsEvento=tsPeligro;
+      let cerradas=0;
+
+      for(const j of activas){
+        try{
+          // Buscar precio de la altcoin en el momento del evento BTC
+          const iv=j.tf==="1h"?"1h":"4h";
+          const rAlt=await fetch(`${BINANCE}/api/v3/klines?symbol=${j.symbol}&interval=${iv}&startTime=${tsEvento}&limit=2`);
+          if(!rAlt.ok) continue;
+          const vAlt=await rAlt.json();
+          const precioEvento=vAlt.length>0?parseFloat(vAlt[0][4]):parseFloat(j.entrada);
+
+          if(j.estado.includes("ENTRÓ")){
+            const pe=parseFloat(j.precioEntradaReal||j.entrada);
+            const pnl=((precioEvento-pe)/pe)*j.usdt;
+            j.estado=pnl>=0?"🚀 TAKE PROFIT":"🛑 STOP LOSS";
+            j.tsCierre=tsEvento;
+            j.precioCierre=precioEvento.toFixed(8);
+            j.tipoCierre="btc";
+            j.motivoCierre=condicionPeligro;
+            resultado+=pnl;capital+=j.usdt+pnl;invertido-=j.usdt;
+            if(pnl>=0){totalWins++;if(j.tipo==="RFibonacci")rfGanancia+=pnl;if(j.tipo==="Connor RSI")connorGanancia+=pnl;if(j.tipo==="Momentum")momentumGanancia+=pnl;if(j.tipo==="Canal Keltner")keltGanancia+=pnl;}
+            else{totalLosses++;const p=Math.abs(pnl);if(j.tipo==="RFibonacci")rfPerdida+=p;if(j.tipo==="Connor RSI")connorPerdida+=p;if(j.tipo==="Momentum")momentumPerdida+=p;if(j.tipo==="Canal Keltner")keltPerdida+=p;}
+          }else{
+            // Estaba esperando — cancelar y devolver capital
+            j.estado="❌ Cancelada";j.tsCierre=tsEvento;j.tipoCierre="cancelada";j.motivoCierre=condicionPeligro;
+            capital+=j.usdt;invertido-=j.usdt;
+          }
+          cerradas++;
+        }catch(e){console.warn("Error cerrando por BTC histórico",j.symbol,e.message);}
+        await new Promise(r=>setTimeout(r,200));
+      }
+
+      if(cerradas>0){
+        guardarTodo();renderStats();renderJugadas();
+        console.log(`BTC histórico: ${condicionPeligro} — ${cerradas} inversión(es) cerrada(s) a las ${new Date(tsPeligro).toLocaleString("es-AR")}`);
+      }
+    }
+  }catch(e){
+    console.warn("Error verificando historial BTC:",e.message);
+  }
+}
+renderStats();renderFiltros();renderJugadas();cargarConfigUI();
+verificarHorario();
+estadoBTC="ANALIZANDO";actualizarBotonesScan();
+verificarHistorico()
+  .then(()=>verificarHistoricoBTC())
+  .then(()=>analizarBTC())
+  .catch(e=>console.warn("Arranque:",e));
+</script>
+</body>
+</html>
