@@ -213,10 +213,10 @@ select option{background:#1e293b;}
 
 <!-- TABS -->
 <div class="tabs">
-  <button class="tab active-alc" onclick="mostrar('rfibonacci',this,'alc')">📈 RFibonacci<br><span style="font-size:10px;opacity:.7;">4h · Alcista</span></button>
-  <button class="tab" onclick="mostrar('connor',this,'alc')">🧠 Connor RSI<br><span style="font-size:10px;opacity:.7;">4h · Alcista</span></button>
-  <button class="tab" onclick="mostrar('momentum',this,'alc')">⚡ Momentum<br><span style="font-size:10px;opacity:.7;">1h · Alcista</span></button>
-  <button class="tab" onclick="mostrar('lateral',this,'lat')">↔️ Lateral<br><span style="font-size:10px;opacity:.7;">4h · Canal</span></button>
+  <button class="tab active-alc" id="tab-rf" onclick="mostrar('rfibonacci',this,'alc')">📈 RFibonacci<br><span style="font-size:10px;opacity:.7;">4h · Alcista</span><br><span id="tab-cd-rf" style="font-size:10px;font-weight:bold;"></span></button>
+  <button class="tab" id="tab-cn" onclick="mostrar('connor',this,'alc')">🧠 Connor RSI<br><span style="font-size:10px;opacity:.7;">4h · Alcista</span><br><span id="tab-cd-cn" style="font-size:10px;font-weight:bold;"></span></button>
+  <button class="tab" id="tab-mo" onclick="mostrar('momentum',this,'alc')">⚡ Momentum<br><span style="font-size:10px;opacity:.7;">1h · Alcista</span><br><span id="tab-cd-mo" style="font-size:10px;font-weight:bold;"></span></button>
+  <button class="tab" id="tab-lat" onclick="mostrar('lateral',this,'lat')">↔️ Lateral<br><span style="font-size:10px;opacity:.7;">4h · Canal</span><br><span id="tab-cd-lat" style="font-size:10px;font-weight:bold;"></span></button>
 </div>
 
 <div id="scan-bloqueado" style="display:none;background:#1a0505;border:1px solid #dc2626;border-radius:12px;padding:12px 14px;margin-bottom:12px;font-size:13px;color:#fca5a5;text-align:center;">
@@ -424,6 +424,7 @@ async function actualizarPreciosLive(){
   }
 }
 setInterval(actualizarPreciosLive,5000);
+setInterval(actualizarBotonesScan,1000);
 
 // ══════════════════════════
 // VERIFICAR PRECIO
@@ -578,16 +579,73 @@ async function analizarBTC(){
   }
 }
 
+// Ventana de escaneo tras cierre de vela (segundos)
+const VENTANA_SCAN = {"1h": 20*60, "4h": 30*60};
+
+function velaRecienCerro(tf){
+  // segVela = segundos que FALTAN para cerrar la vela actual
+  // Si faltan MUCHOS segundos -> vela recién abrió -> NO escanear
+  // Si faltan POCOS segundos -> vela está por cerrar -> NO escanear
+  // Ventana: los primeros N minutos tras el cierre
+  // segVela grande (cercano a duracion) = acaba de cerrar -> OK
+  const dur = TF_SEG[tf]||3600;
+  const falta = segVela(tf);
+  const ventana = VENTANA_SCAN[tf]||1200;
+  // falta > (dur - ventana) significa que la vela recién cerró
+  return falta > (dur - ventana);
+}
+
 function actualizarBotonesScan(){
-  const bloqueadoBTC    = estadoBTC==="PELIGRO";
-  const bloqueadoHor    = horarioBloqueado;
-  const bloqueado       = bloqueadoBTC || bloqueadoHor || estadoBTC==="ANALIZANDO";
-  const btns=document.querySelectorAll(".scan,.scan-lat");
-  btns.forEach(btn=>{
-    btn.disabled=bloqueado;
-    btn.style.opacity=bloqueado?"0.4":"1";
-    btn.style.cursor=bloqueado?"not-allowed":"pointer";
+  const bloqueadoBTC = estadoBTC==="PELIGRO";
+  const bloqueadoHor = horarioBloqueado;
+  const bloqGlobal   = bloqueadoBTC || bloqueadoHor || estadoBTC==="ANALIZANDO";
+
+  // Configs por indicador: [prefijo, tf, clase boton, id tab]
+  const INDICADORES = [
+    {prefix:"rf",  tf:"4h", cls:".scan",     tabId:"tab-rf",  cdId:"tab-cd-rf"},
+    {prefix:"cn",  tf:"4h", cls:".scan",     tabId:"tab-cn",  cdId:"tab-cd-cn"},
+    {prefix:"mo",  tf:"1h", cls:".scan",     tabId:"tab-mo",  cdId:"tab-cd-mo"},
+    {prefix:"lat", tf:"4h", cls:".scan-lat", tabId:"tab-lat", cdId:"tab-cd-lat"},
+  ];
+
+  INDICADORES.forEach(ind=>{
+    const dur    = TF_SEG[ind.tf]||3600;
+    const falta  = segVela(ind.tf);
+    const ventana= VENTANA_SCAN[ind.tf]||1200;
+    const velaOk = falta > (dur - ventana); // vela recién cerró, datos disponibles
+    const bloq   = bloqGlobal || !velaOk;
+
+    // Botón de escaneo dentro de la sección
+    const secId = ind.prefix==="rf"?"rfibonacci":ind.prefix==="cn"?"connor":ind.prefix==="mo"?"momentum":"lateral";
+    const sec = document.getElementById(secId);
+    if(sec){
+      const btn = sec.querySelector("button.scan, button.scan-lat");
+      if(btn){
+        btn.disabled = bloq;
+        btn.style.opacity = bloq?"0.4":"1";
+        btn.style.cursor  = bloq?"not-allowed":"pointer";
+      }
+    }
+
+    // Countdown en el tab
+    const cdEl = document.getElementById(ind.cdId);
+    const tabEl= document.getElementById(ind.tabId);
+    if(cdEl){
+      if(bloqGlobal){
+        cdEl.innerText = "";
+      } else if(velaOk){
+        cdEl.style.color="#4ade80";
+        cdEl.innerText = "✅ Disponible";
+        if(tabEl) tabEl.style.opacity="1";
+      } else {
+        // Tiempo hasta próximo cierre de vela
+        cdEl.style.color="#facc15";
+        cdEl.innerText = "⏳ "+fmtHMS(falta);
+        if(tabEl) tabEl.style.opacity="0.65";
+      }
+    }
   });
+
   const avisoScan=document.getElementById("scan-bloqueado");
   if(avisoScan) avisoScan.style.display=bloqueadoBTC&&!bloqueadoHor?"block":"none";
 }
