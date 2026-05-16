@@ -399,6 +399,22 @@ async function actualizarPreciosLive(){
         }
         // Verificar TP/SL para las que entraron
         if(j.estado.includes("ENTRÓ")){
+          const esAlcista=j.tendencia!=="LATERAL";
+          // TP1: cierre parcial 50% solo en alcistas
+          if(esAlcista&&!j.tp1Alcanzado&&j.tp1&&p>=parseFloat(j.tp1)){
+            const pe=parseFloat(j.precioEntradaReal||j.entrada);
+            const mitad=j.usdt/2;
+            const comisionVenta=mitad*(cfgComision/200);
+            const ganNeta=((p-pe)/pe)*mitad - comisionVenta;
+            j.tp1Alcanzado=true;
+            j.usdtCerrado50=mitad;
+            j.ganancia50=parseFloat(ganNeta.toFixed(4));
+            j.usdtRestante=mitad;
+            // SL se mueve a breakeven: precio entrada + comision
+            j.sl=parseFloat((pe*(1+cfgComision/200)).toFixed(8));
+            resultado+=ganNeta;
+            guardarTodo();renderStats();renderJugadas();
+          }
           if(p>=parseFloat(j.tp))cerrarAutomatico(j,"🚀 TAKE PROFIT",p);
           else if(p<=parseFloat(j.sl))cerrarAutomatico(j,"🛑 STOP LOSS",p);
         }
@@ -675,10 +691,16 @@ async function verificarHistorico(){
 function cerrarAutomatico(j,estado,precio){
   if(!j.estado.includes("ENTRÓ"))return;
   const pe=parseFloat(j.precioEntradaReal||j.entrada);
-  const pnl=((precio-pe)/pe)*j.usdt;
+  // Si ya hubo TP1 (50% parcial), solo cierra el 50% restante
+  const baseUsdt=j.tp1Alcanzado?j.usdtRestante:j.usdt;
+  const pnlRestante=((precio-pe)/pe)*baseUsdt;
+  // Comision de venta sobre lo que se cierra ahora
+  const comVenta=baseUsdt*(cfgComision/200);
+  const pnl=pnlRestante - comVenta + (j.ganancia50||0);
   j.estado=estado;j.tsCierre=Date.now();j.precioCierre=fmt(precio);
   j.tipoCierre=estado.includes("PROFIT")?"tp":"sl";
-  resultado+=pnl;capital+=j.usdt+pnl;invertido-=j.usdt;
+  // resultado ya tiene ganancia50 sumada; solo sumar pnlRestante-comVenta
+  resultado+=(pnlRestante-comVenta);capital+=j.usdt+(pnlRestante-comVenta+(j.ganancia50||0));invertido-=j.usdt;
   if(pnl>=0){totalWins++;if(j.tipo==="RFibonacci")rfGanancia+=pnl;if(j.tipo==="Connor RSI")connorGanancia+=pnl;if(j.tipo==="Momentum")momentumGanancia+=pnl;if(j.tipo==="Canal Keltner")keltGanancia+=pnl;}
   else{totalLosses++;const p=Math.abs(pnl);if(j.tipo==="RFibonacci")rfPerdida+=p;if(j.tipo==="Connor RSI")connorPerdida+=p;if(j.tipo==="Momentum")momentumPerdida+=p;if(j.tipo==="Canal Keltner")keltPerdida+=p;}
   guardarTodo();renderStats();renderJugadas();
@@ -767,7 +789,11 @@ function guardarAlerta(id){
   const ya=jugadas.find(j=>j.symbol===a.symbol&&(j.estado.includes("Esperando")||j.estado.includes("ENTRÓ")));
   if(ya){alert(`Ya tenés inversión activa de ${a.symbol}`);return;}
   capital-=usdt;invertido+=usdt;
-  jugadas.push({id:Date.now(),tipo:a.tipo,symbol:a.symbol,tf:a.tf,usdt,entrada:a.entrada,tp:a.tp,sl:a.sl,be:a.be,atr:a.atr,estado:"⏳ Esperando entrada",tendencia:a.tendencia,tsGuardada:Date.now(),tsEntrada:null,tsCierre:null,precioEntradaReal:null,precioCierre:null,tipoCierre:null});
+  // TP1 = punto medio entre entrada y TP (para cierre parcial 50%)
+  const tp1=parseFloat(((a.entrada+a.tp)/2).toFixed(8));
+  jugadas.push({id:Date.now(),tipo:a.tipo,symbol:a.symbol,tf:a.tf,usdt,entrada:a.entrada,tp:a.tp,tp1,sl:a.sl,be:a.be,atr:a.atr,estado:"⏳ Esperando entrada",tendencia:a.tendencia,tsGuardada:Date.now(),tsEntrada:null,tsCierre:null,precioEntradaReal:null,precioCierre:null,tipoCierre:null,
+    // breakeven state
+    tp1Alcanzado:false,usdtRestante:usdt,usdtCerrado50:0,ganancia50:0});
   delete alertasCache[id];
   const card=inp?.closest(".card");if(card)card.remove();
   guardarTodo();renderStats();renderJugadas();
@@ -875,6 +901,7 @@ function renderJugadas(){
             <div style="font-size:12px;color:#64748b;margin-top:2px;">${j.tipo} · ${j.tf} · ${j.usdt} USDT</div>
             <div style="font-size:12px;color:#94a3b8;margin-top:2px;">${tipoCierreTxt} · ${dur}</div>
             ${pnl!==null?`<div style="font-size:14px;font-weight:bold;color:${pnlC};margin-top:4px;">${pnlStr}</div>`:""}
+            ${j.tp1Alcanzado?`<div style="font-size:11px;color:#a78bfa;margin-top:2px;">🎯 TP1 50% ejecutado · +${j.ganancia50} USDT · SL→Breakeven</div>`:""}
             ${j.motivoCierre?`<div style="font-size:11px;color:#f97316;margin-top:2px;">⚠️ ${j.motivoCierre}</div>`:""}
           </div>
           <button onclick="eliminarJugada(${j.id})" style="width:auto;margin-top:0;padding:6px 12px;background:#334155;border:none;border-radius:8px;color:#94a3b8;font-size:12px;cursor:pointer;flex-shrink:0;margin-left:8px;">✕</button>
@@ -918,8 +945,9 @@ function renderJugadas(){
           <span class="precio-live-val live-precio-${j.symbol}" id="pl-${j.id}">${precioLive?fmt(precioLive):"Cargando..."}</span>
         </div>
         <p>🎯 Entrada: <strong>${fmt(j.entrada)}</strong></p>
-        <p><span style="color:#4ade80;">🚀 TP: <strong>${fmt(j.tp)}</strong></span></p>
-        <p><span style="color:#f87171;">🛑 SL: <strong>${fmt(j.sl)}</strong></span></p>
+        ${j.tendencia!=='LATERAL'&&j.tp1?`<p><span style="color:#a78bfa;">🎯 TP1 50%: <strong>${fmt(j.tp1)}</strong></span> ${j.tp1Alcanzado?`<span style="background:#4c1d95;color:#c4b5fd;padding:2px 8px;border-radius:6px;font-size:11px;">✅ EJECUTADO · +${j.ganancia50} USDT · SL→BE</span>`:''}</p>`:''}
+        <p><span style="color:#4ade80;">🚀 TP final: <strong>${fmt(j.tp)}</strong></span></p>
+        <p><span style="color:#f87171;">🛑 SL: <strong>${fmt(j.sl)}</strong></span> ${j.tp1Alcanzado?'<span style="color:#facc15;font-size:11px;">(Breakeven)</span>':''}</p>
         <p style="color:#facc15;">⚖️ BE: <strong>${fmt(j.be)}</strong></p>
         ${esperando?`<div class="vela-box"><span class="vela-icon">🕯</span><div class="vela-info">
           <span class="vela-lbl">Cierre vela (${j.tf})</span>
