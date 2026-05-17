@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Barómetro</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,600;1,300;1,600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0d1117;
+    --surface: #141b24;
+    --border: rgba(150,180,220,0.15);
+    --accent: #7ec8e3;
+    --accent2: #e8c87e;
+    --text: #dce8f0;
+    --muted: #556678;
+    --danger: #e87e7e;
+  }
+
+  body {
+    background: var(--bg);
+    background-image:
+      radial-gradient(ellipse 80% 60% at 50% -10%, rgba(126,200,227,0.07) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 80% 110%, rgba(232,200,126,0.05) 0%, transparent 50%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Space Mono', monospace;
+    color: var(--text);
+    padding: 2rem 1rem;
+  }
+
+  .wrap { width: 100%; max-width: 520px; }
+
+  .header {
+    text-align: center;
+    margin-bottom: 2.8rem;
+    animation: fadeUp 0.6s ease both;
+  }
+
+  .gauge-svg {
+    display: block;
+    margin: 0 auto 1.4rem;
+    width: 120px;
+    height: 70px;
+  }
+
+  h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 300;
+    font-size: 2.4rem;
+    letter-spacing: 0.04em;
+    color: var(--text);
+    line-height: 1;
+  }
+  h1 span { font-style: italic; color: var(--accent); }
+
+  .tagline {
+    margin-top: 0.5rem;
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 2rem;
+    animation: fadeUp 0.7s 0.1s ease both;
+  }
+
+  .field-label {
+    font-size: 0.62rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 0.6rem;
+    display: block;
+  }
+
+  /* Two inputs side by side */
+  .inputs-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .input-group { display: flex; flex-direction: column; }
+
+  .input-wrap { position: relative; }
+
+  input[type="number"] {
+    width: 100%;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    font-size: 1.4rem;
+    font-weight: 700;
+    padding: 0.65rem 2.8rem 0.65rem 0.9rem;
+    outline: none;
+    transition: border-color 0.2s;
+    -moz-appearance: textfield;
+  }
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
+  input[type="number"]:focus { border-color: var(--accent); }
+
+  .unit-badge {
+    position: absolute;
+    right: 0.7rem;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.65rem;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    pointer-events: none;
+  }
+
+  button {
+    width: 100%;
+    background: var(--accent);
+    border: none;
+    border-radius: 3px;
+    color: var(--bg);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.85rem;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+  }
+  button:hover { background: #9fd8ee; }
+  button:active { transform: scale(0.98); }
+  button:disabled { background: var(--muted); cursor: not-allowed; }
+
+  /* Pressure bar */
+  .pressure-bar-wrap { margin-top: 1.5rem; }
+
+  .bar-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.55rem;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    margin-bottom: 0.35rem;
+  }
+
+  .bar-track {
+    height: 6px;
+    border-radius: 3px;
+    background: linear-gradient(90deg, #e87e7e 0%, #e8a87e 25%, #e8c87e 50%, #7ec8e3 75%, #7e9ee8 100%);
+    position: relative;
+  }
+
+  .bar-needle {
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 12px; height: 12px;
+    background: #fff;
+    border-radius: 50%;
+    border: 2px solid var(--bg);
+    box-shadow: 0 0 0 1px rgba(255,255,255,0.3);
+    transition: left 0.8s cubic-bezier(0.34,1.56,0.64,1);
+    left: 50%;
+  }
+
+  .bar-range-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.55rem;
+    color: var(--muted);
+    margin-top: 0.35rem;
+  }
+
+  /* Temp indicator */
+  .temp-indicator {
+    margin-top: 0.8rem;
+    font-size: 0.65rem;
+    color: var(--muted);
+    text-align: right;
+    letter-spacing: 0.05em;
+    min-height: 1em;
+    transition: color 0.3s;
+  }
+
+  /* Result */
+  .result {
+    margin-top: 1.5rem;
+    border-top: 1px solid var(--border);
+    padding-top: 1.5rem;
+    display: none;
+    animation: fadeUp 0.5s ease both;
+  }
+  .result.visible { display: block; }
+
+  .result-header {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    margin-bottom: 1rem;
+  }
+
+  .weather-icon { font-size: 2.2rem; line-height: 1; }
+
+  .result-label {
+    font-size: 0.6rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .result-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.5rem;
+    font-style: italic;
+    color: var(--accent2);
+    margin-top: 0.1rem;
+    line-height: 1.1;
+  }
+
+  .result-body {
+    font-size: 0.82rem;
+    line-height: 1.75;
+    color: rgba(220,232,240,0.85);
+  }
+
+  .loading-dots {
+    display: inline-flex;
+    gap: 4px;
+    align-items: center;
+    padding: 0.5rem 0;
+  }
+  .loading-dots span {
+    width: 6px; height: 6px;
+    background: var(--accent);
+    border-radius: 50%;
+    animation: bounce 1.2s infinite;
+  }
+  .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+  .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+  .error-msg { color: var(--danger); font-size: 0.78rem; }
+
+  .footer {
+    text-align: center;
+    margin-top: 2rem;
+    font-size: 0.58rem;
+    letter-spacing: 0.15em;
+    color: var(--muted);
+    text-transform: uppercase;
+    animation: fadeUp 0.8s 0.2s ease both;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes bounce {
+    0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+    40% { transform: scale(1); opacity: 1; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <header class="header">
+    <svg class="gauge-svg" viewBox="0 0 120 70" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M10 60 A50 50 0 0 1 110 60" stroke="rgba(150,180,220,0.15)" stroke-width="8" stroke-linecap="round"/>
+      <path d="M10 60 A50 50 0 0 1 110 60" stroke="url(#gaugeGrad)" stroke-width="3" stroke-linecap="round"/>
+      <line x1="60" y1="10" x2="60" y2="17" stroke="rgba(150,180,220,0.4)" stroke-width="1.5" transform="rotate(-90,60,60)"/>
+      <line x1="60" y1="10" x2="60" y2="15" stroke="rgba(150,180,220,0.25)" stroke-width="1" transform="rotate(-67.5,60,60)"/>
+      <line x1="60" y1="10" x2="60" y2="17" stroke="rgba(150,180,220,0.4)" stroke-width="1.5" transform="rotate(-45,60,60)"/>
+      <line x1="60" y1="10" x2="60" y2="15" stroke="rgba(150,180,220,0.25)" stroke-width="1" transform="rotate(-22.5,60,60)"/>
+      <line x1="60" y1="10" x2="60" y2="17" stroke="rgba(150,180,220,0.4)" stroke-width="1.5"/>
+      <line x1="60" y1="10" x2="60" y2="15" stroke="rgba(150,180,220,0.25)" stroke-width="1" transform="rotate(22.5,60,60)"/>
+      <line x1="60" y1="10" x2="60" y2="17" stroke="rgba(150,180,220,0.4)" stroke-width="1.5" transform="rotate(45,60,60)"/>
+      <line x1="60" y1="10" x2="60" y2="15" stroke="rgba(150,180,220,0.25)" stroke-width="1" transform="rotate(67.5,60,60)"/>
+      <line x1="60" y1="10" x2="60" y2="17" stroke="rgba(150,180,220,0.4)" stroke-width="1.5" transform="rotate(90,60,60)"/>
+      <line id="needle" x1="60" y1="60" x2="60" y2="18"
+        stroke="#7ec8e3" stroke-width="2" stroke-linecap="round"
+        style="transform-origin: 60px 60px; transform: rotate(0deg); transition: transform 0.8s cubic-bezier(0.34,1.56,0.64,1);"/>
+      <circle cx="60" cy="60" r="4" fill="#7ec8e3"/>
+      <circle cx="60" cy="60" r="2" fill="#0d1117"/>
+      <defs>
+        <linearGradient id="gaugeGrad" x1="10" y1="0" x2="110" y2="0" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#e87e7e"/>
+          <stop offset="50%" stop-color="#e8c87e"/>
+          <stop offset="100%" stop-color="#7ec8e3"/>
+        </linearGradient>
+      </defs>
+    </svg>
+    <h1>Baró<span>metro</span></h1>
+    <p class="tagline">Interpretación meteorológica · hPa + °C</p>
+  </header>
+
+  <div class="card">
+
+    <div class="inputs-grid">
+      <div class="input-group">
+        <label class="field-label" for="hpa">Presión</label>
+        <div class="input-wrap">
+          <input type="number" id="hpa" min="900" max="1080" placeholder="1013" />
+          <span class="unit-badge">hPa</span>
+        </div>
+      </div>
+      <div class="input-group">
+        <label class="field-label" for="temp">Temperatura</label>
+        <div class="input-wrap">
+          <input type="number" id="temp" min="-30" max="50" placeholder="15" />
+          <span class="unit-badge">°C</span>
+        </div>
+      </div>
+    </div>
+
+    <button id="btn" onclick="interpret()">Analizar clima</button>
+
+    <!-- Pressure bar -->
+    <div class="pressure-bar-wrap">
+      <div class="bar-labels">
+        <span>Muy baja</span>
+        <span>Normal</span>
+        <span>Muy alta</span>
+      </div>
+      <div class="bar-track">
+        <div class="bar-needle" id="barNeedle"></div>
+      </div>
+      <div class="bar-range-labels">
+        <span>960</span>
+        <span>1013</span>
+        <span>1060</span>
+      </div>
+    </div>
+
+    <!-- Temp hint -->
+    <div class="temp-indicator" id="tempHint"></div>
+
+    <!-- Result -->
+    <div class="result" id="result">
+      <div class="result-header">
+        <div class="weather-icon" id="weatherIcon">🌤</div>
+        <div class="result-meta">
+          <div class="result-label">Pronóstico</div>
+          <div class="result-title" id="resultTitle">—</div>
+        </div>
+      </div>
+      <div class="result-body" id="resultBody"></div>
+    </div>
+  </div>
+
+  <div class="footer">Powered por IA · Solo orientativo</div>
+</div>
+
+<script>
+  const inputHpa  = document.getElementById('hpa');
+  const inputTemp = document.getElementById('temp');
+  const needle    = document.getElementById('needle');
+  const barNeedle = document.getElementById('barNeedle');
+  const tempHint  = document.getElementById('tempHint');
+  const MIN_HPA = 960, MAX_HPA = 1060;
+
+  inputHpa.addEventListener('input', () => {
+    const v = parseFloat(inputHpa.value);
+    if (!isNaN(v)) updatePressureVisuals(v);
+  });
+
+  inputTemp.addEventListener('input', () => {
+    const v = parseFloat(inputTemp.value);
+    if (!isNaN(v)) updateTempHint(v);
+    else tempHint.textContent = '';
+  });
+
+  function updatePressureVisuals(hpa) {
+    const clamped = Math.min(Math.max(hpa, MIN_HPA), MAX_HPA);
+    const pct = (clamped - MIN_HPA) / (MAX_HPA - MIN_HPA);
+    needle.style.transform = `rotate(${-90 + pct * 180}deg)`;
+    barNeedle.style.left = (pct * 100) + '%';
+  }
+
+  function updateTempHint(c) {
+    let label = '';
+    let color = 'var(--muted)';
+    if (c <= 0)       { label = `❄️ Helada posible (${c}°C)`; color = '#7ec8e3'; }
+    else if (c <= 8)  { label = `🧊 Muy frío (${c}°C)`;       color = '#9fd8ee'; }
+    else if (c <= 15) { label = `🌬 Fresco (${c}°C)`;          color = 'var(--muted)'; }
+    else if (c <= 25) { label = `🌤 Templado (${c}°C)`;        color = 'var(--accent2)'; }
+    else if (c <= 33) { label = `☀️ Cálido (${c}°C)`;          color = '#e8a87e'; }
+    else              { label = `🔥 Muy caluroso (${c}°C)`;    color = 'var(--danger)'; }
+    tempHint.textContent = label;
+    tempHint.style.color = color;
+  }
+
+  async function interpret() {
+    const hpa  = parseFloat(inputHpa.value);
+    const temp = parseFloat(inputTemp.value);
+
+    if (isNaN(hpa) || hpa < 900 || hpa > 1080) {
+      showResult('⚠️', 'Valor inválido', 'Ingresá una presión entre 900 y 1080 hPa.', true);
+      return;
+    }
+    if (isNaN(temp) || temp < -30 || temp > 50) {
+      showResult('⚠️', 'Temperatura inválida', 'Ingresá una temperatura entre -30 y 50°C.', true);
+      return;
+    }
+
+    updatePressureVisuals(hpa);
+    updateTempHint(temp);
+
+    const btn = document.getElementById('btn');
+    document.getElementById('result').classList.add('visible');
+    document.getElementById('weatherIcon').textContent = '🌀';
+    document.getElementById('resultTitle').textContent = 'Analizando...';
+    document.getElementById('resultBody').innerHTML = '<div class="loading-dots"><span></span><span></span><span></span></div>';
+    btn.disabled = true;
+
+    const prompt = `Sos un meteorólogo experto. El barómetro marcó ${hpa} hPa y la temperatura actual es ${temp}°C.
+
+Analizá la combinación de ambos valores y respondé en español rioplatense, claro y directo.
+Devolvé SOLO este JSON (sin markdown, sin backticks, sin texto extra):
+
+{"titulo":"Título corto del estado del tiempo","icono":"emoji del clima","interpretacion":"2-4 oraciones combinando presión y temperatura: qué significa esa presión, qué tiempo se espera, y cómo afecta la temperatura (heladas, sensación térmica, bruma, etc.)."}
+
+Escalas de presión:
+- <980 hPa: muy baja → tormentas o lluvias intensas
+- 980-1000 hPa: baja → tiempo inestable, probables lluvias
+- 1000-1013 hPa: levemente bajo → nublado o variable
+- 1013 hPa: normal
+- 1013-1025 hPa: alta → estable y despejado
+- >1025 hPa: muy alta → muy estable, cielos despejados
+
+Consideraciones de temperatura:
+- ≤0°C: heladas, posible escarcha o nieve si hay humedad
+- 1-8°C: muy frío, sensación térmica intensa con viento
+- 9-15°C: fresco
+- 16-25°C: templado
+- 26-33°C: cálido
+- >33°C: caluroso, riesgo de golpe de calor si hay humedad`;
+
+    try {
+      const response = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "claude-sonnet-4-20250514",
+          max_tokens: 1000,
+          messages: [{ role: "user", content: prompt }]
+        })
+      });
+
+      const data = await response.json();
+      const text = data.content.map(i => i.text || '').join('');
+      const clean = text.replace(/```json|```/g, '').trim();
+      const parsed = JSON.parse(clean);
+
+      showResult(parsed.icono || '🌤', parsed.titulo || '—', parsed.interpretacion || '');
+
+    } catch (err) {
+      showResult('⚠️', 'Error', 'No se pudo obtener la interpretación. Intentá de nuevo.', true);
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  function showResult(icon, title, body, isError = false) {
+    document.getElementById('result').classList.add('visible');
+    document.getElementById('weatherIcon').textContent = icon;
+    document.getElementById('resultTitle').textContent = title;
+    const bodyEl = document.getElementById('resultBody');
+    bodyEl.innerHTML = isError ? `<span class="error-msg">${body}</span>` : '';
+    if (!isError) bodyEl.textContent = body;
+  }
+
+  // Enter en cualquier input dispara el análisis
+  [inputHpa, inputTemp].forEach(el => {
+    el.addEventListener('keydown', e => { if (e.key === 'Enter') interpret(); });
+  });
+</script>
+</body>
+</html>

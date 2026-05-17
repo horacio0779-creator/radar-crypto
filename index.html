@@ -212,6 +212,17 @@ select option{background:#1e293b;}
 </div>
 
 <!-- TABS -->
+<!-- MODO PRUEBA -->
+<div id="modo-prueba-bar" style="display:flex;align-items:center;justify-content:space-between;background:#0f1a0f;border:1px solid #166534;border-radius:12px;padding:11px 14px;margin-bottom:14px;">
+  <div>
+    <div style="font-weight:bold;font-size:13px;color:#4ade80;" id="mp-titulo">&#128737;&#65039; Protecciones activas</div>
+    <div style="font-size:11px;color:#64748b;margin-top:2px;" id="mp-sub">BTC &middot; Horario &middot; Vela</div>
+  </div>
+  <button id="mp-btn" onclick="toggleModoPrueba()" style="width:auto;margin-top:0;padding:8px 14px;border:none;border-radius:10px;background:#166534;color:#4ade80;font-weight:bold;font-size:12px;cursor:pointer;">
+    Modo Normal
+  </button>
+</div>
+
 <div class="tabs">
   <button class="tab active-alc" id="tab-rf" onclick="mostrar('rfibonacci',this,'alc')">📈 RFibonacci<br><span style="font-size:10px;opacity:.7;">4h · Alcista</span><br><span id="tab-cd-rf" style="font-size:10px;font-weight:bold;"></span></button>
   <button class="tab" id="tab-cn" onclick="mostrar('connor',this,'alc')">🧠 Connor RSI<br><span style="font-size:10px;opacity:.7;">4h · Alcista</span><br><span id="tab-cd-cn" style="font-size:10px;font-weight:bold;"></span></button>
@@ -456,6 +467,35 @@ async function verificarPrecio(){
 //  Dentro de semana: 00:00 → 9:00 (madrugada, bajo volumen)
 // ══════════════════════════════════════
 let horarioBloqueado = false;
+let modoPrueba = false;
+
+function toggleModoPrueba(){
+  modoPrueba = !modoPrueba;
+  const btn = document.getElementById("mp-btn");
+  const tit = document.getElementById("mp-titulo");
+  const sub = document.getElementById("mp-sub");
+  const bar = document.getElementById("modo-prueba-bar");
+  if(modoPrueba){
+    btn.innerText = "PRUEBA ON - Toca para desactivar";
+    btn.style.background = "#7c3aed";
+    btn.style.color = "#c4b5fd";
+    bar.style.background = "#1a0f2e";
+    bar.style.borderColor = "#7c3aed";
+    tit.style.color = "#c4b5fd";
+    tit.innerText = "Modo Prueba activo";
+    sub.innerText = "BTC y horario ignorados - solo bloqueo por vela";
+  } else {
+    btn.innerText = "Modo Normal";
+    btn.style.background = "#166534";
+    btn.style.color = "#4ade80";
+    bar.style.background = "#0f1a0f";
+    bar.style.borderColor = "#166534";
+    tit.style.color = "#4ade80";
+    tit.innerText = "Protecciones activas";
+    sub.innerText = "BTC - Horario - Vela";
+  }
+  actualizarBotonesScan();
+}
 let estadoBTC = "ANALIZANDO";
 
 function verificarHorario(){
@@ -596,9 +636,9 @@ function velaRecienCerro(tf){
 }
 
 function actualizarBotonesScan(){
-  const bloqueadoBTC = estadoBTC==="PELIGRO";
-  const bloqueadoHor = horarioBloqueado;
-  const bloqGlobal   = bloqueadoBTC || bloqueadoHor || estadoBTC==="ANALIZANDO";
+  const bloqueadoBTC = !modoPrueba && estadoBTC==="PELIGRO";
+  const bloqueadoHor = !modoPrueba && horarioBloqueado;
+  const bloqGlobal   = bloqueadoBTC || bloqueadoHor || (!modoPrueba && estadoBTC==="ANALIZANDO");
 
   // Configs por indicador: [prefijo, tf, clase boton, id tab]
   const INDICADORES = [

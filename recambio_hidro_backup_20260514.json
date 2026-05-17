@@ -1,0 +1,36 @@
+{
+  "ss": [
+    {
+      "id": "mp5m2aedrz8f",
+      "nombre": "Nenis",
+      "etapa": "Germinación",
+      "fecha": "2026-05-10",
+      "dias": 7
+    },
+    {
+      "id": "mp5m3cwwir8e",
+      "nombre": "Auto vieja",
+      "etapa": "Flora",
+      "fecha": "2026-05-12",
+      "dias": 7
+    },
+    {
+      "id": "mp5m4d4eajfw",
+      "nombre": "Fp",
+      "etapa": "Flora",
+      "fecha": "2026-05-10",
+      "dias": 10
+    },
+    {
+      "id": "mp5m6a7xdc57",
+      "nombre": "Solutaria",
+      "etapa": "Flora",
+      "fecha": "2026-05-12",
+      "dias": 7
+    }
+  ],
+  "ph": {
+    "fecha": "2026-05-12",
+    "dias": 14
+  }
+}
