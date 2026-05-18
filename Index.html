@@ -468,6 +468,8 @@ async function verificarPrecio(){
 // ══════════════════════════════════════
 let horarioBloqueado = false;
 let modoPrueba = false;
+let velasConfirmacion = 0;   // velas 4h consecutivas sobre EMA50 tras bloqueo
+let btcBloqueadoPorVela = false; // true cuando una vela 4h cerro bajo EMA50
 
 function toggleModoPrueba(){
   modoPrueba = !modoPrueba;
@@ -580,38 +582,77 @@ async function analizarBTC(){
     const[v,precio]=await Promise.all([fetchVelas("BTCUSDT","4h",220),fetchPrecio("BTCUSDT")]);
     const cl=v.cCloses,hi=v.cHighs,lo=v.cLows;
     const ema50=calcEMA(cl,50),adx=calcADX(hi,lo,cl,14);
-    const minAnt=Math.min(...lo.slice(-21,-1));
     const pend=(cl[cl.length-1]-cl[cl.length-6])/cl[cl.length-6]*100;
     const ts=new Date().toLocaleTimeString("es-AR",{hour:"2-digit",minute:"2-digit"});
+
+    // Ultima vela CERRADA (penultima en el array, la ultima es la vela actual en formacion)
+    const ultimaVelaCerro = cl[cl.length-2];
+    const velaAnteriorCerro = cl[cl.length-3];
+
     let cls,tit,sub,acc,accBg,accCol,cerrar=false;
 
-    if(precio<ema50&&precio<minAnt){
-      cls="btc-rojo";tit="🔴 BTC rompió mínimo anterior";sub="Cambio de tendencia.";
-      acc="QUEDARSE EN USDT";accBg="#7f1d1d";accCol="#fca5a5";
-      cerrar=true;estadoBTC="PELIGRO";
-    }else if(precio<ema50){
-      cls="btc-naranja";tit="🟠 BTC cayó bajo EMA 50";sub="Altcoins caen el doble.";
-      acc="⚠️ CERRAR TODO";accBg="#c2410c";accCol="#fed7aa";
-      cerrar=true;estadoBTC="PELIGRO";
-    }else if(pend>8&&adx>40){
+    // ── LOGICA DE BLOQUEO: vela 4h CERRADA bajo EMA50 ──
+    if(!btcBloqueadoPorVela && ultimaVelaCerro < ema50){
+      // Primera vela que cierra bajo EMA50 -> bloquear y cerrar todo
+      btcBloqueadoPorVela = true;
+      velasConfirmacion = 0;
+      cerrar = true;
+      estadoBTC = "PELIGRO";
+    }
+
+    // ── LOGICA DE DESBLOQUEO: 2 velas 4h consecutivas cerrando sobre EMA50 ──
+    if(btcBloqueadoPorVela){
+      if(ultimaVelaCerro > ema50 && velaAnteriorCerro > ema50){
+        // 2 velas consecutivas confirmadas sobre EMA50
+        velasConfirmacion = 2;
+        btcBloqueadoPorVela = false;
+        estadoBTC = "OK";
+      } else if(ultimaVelaCerro > ema50){
+        velasConfirmacion = 1;
+        estadoBTC = "PELIGRO"; // sigue bloqueado, falta 1 vela mas
+      } else {
+        velasConfirmacion = 0;
+        estadoBTC = "PELIGRO";
+      }
+    }
+
+    // ── RENDER SEGUN ESTADO ──
+    if(estadoBTC === "PELIGRO" && btcBloqueadoPorVela){
+      if(velasConfirmacion === 1){
+        cls="btc-naranja";
+        tit="🟠 BTC recuperando — 1/2 velas confirmadas";
+        sub="Falta 1 vela de 4h cerrando sobre EMA50 para habilitarse.";
+        acc="BLOQUEADO — Esperando confirmacion";accBg="#c2410c";accCol="#fed7aa";
+      } else {
+        cls="btc-rojo";
+        tit="🔴 BTC bajo EMA 50 — Operaciones bloqueadas";
+        sub="Se necesitan 2 velas de 4h consecutivas sobre EMA50 para volver.";
+        acc="QUEDARSE EN USDT";accBg="#7f1d1d";accCol="#fca5a5";
+      }
+    } else if(pend>8&&adx>40){
       cls="btc-amarillo";tit="🟡 BTC parabólico (+"+pend.toFixed(1)+"%)";sub="Altcoins se quedan quietas.";
       acc="CUIDADO — No abrir nuevas";accBg="#854d0e";accCol="#fef08a";
       estadoBTC="CUIDADO";
-    }else{
-      cls="btc-verde";tit="🟢 BTC estable sobre EMA 50";sub="Condiciones ideales para operar.";
+    } else {
+      cls="btc-verde";
+      tit = btcBloqueadoPorVela===false && velasConfirmacion===2
+        ? "🟢 BTC confirmó — 2 velas sobre EMA50. Podés operar."
+        : "🟢 BTC estable sobre EMA 50";
+      sub="Condiciones ideales para operar.";
       acc="✅ OPERAR NORMAL";accBg="#14532d";accCol="#4ade80";
-      estadoBTC="OK";
+      velasConfirmacion = 0; // reset para proximo ciclo
     }
 
     document.getElementById("btc-panel").className="btc-panel "+cls;
     document.getElementById("btc-titulo").innerText=tit;
     document.getElementById("btc-sub").innerText=sub;
-    document.getElementById("btc-datos").innerText=`BTC: $${precio.toFixed(0)} · EMA50: $${ema50.toFixed(0)} · ADX: ${adx.toFixed(1)}`;
+    document.getElementById("btc-datos").innerText=`BTC: $${precio.toFixed(0)} · EMA50: $${ema50.toFixed(0)} · ADX: ${adx.toFixed(1)} · Confirmaciones: ${velasConfirmacion}/2`;
     const ae=document.getElementById("btc-accion");ae.innerText=acc;ae.style.background=accBg;ae.style.color=accCol;
     document.getElementById("btc-ts").innerText="Actualizado: "+ts;
 
     actualizarBotonesScan();
-    if(cerrar)cerrarTodasPorBTC(acc);
+    // Solo cierra si NO esta en modo prueba
+    if(cerrar && !modoPrueba) cerrarTodasPorBTC(acc);
   }catch(e){
     document.getElementById("btc-titulo").innerText="⚠️ Sin conexión — verificá internet";
     document.getElementById("btc-sub").innerText=e.message;
@@ -636,7 +677,7 @@ function velaRecienCerro(tf){
 }
 
 function actualizarBotonesScan(){
-  const bloqueadoBTC = !modoPrueba && estadoBTC==="PELIGRO";
+  const bloqueadoBTC = !modoPrueba && (estadoBTC==="PELIGRO" || btcBloqueadoPorVela);
   const bloqueadoHor = !modoPrueba && horarioBloqueado;
   const bloqGlobal   = bloqueadoBTC || bloqueadoHor || (!modoPrueba && estadoBTC==="ANALIZANDO");
 
